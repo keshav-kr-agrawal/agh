@@ -45,29 +45,34 @@ export function getOptimizedImageUrl(
  */
 export async function uploadToCloudinary(file: File | string): Promise<string> {
   if (!file) return '';
-  if (typeof file === 'string') return file;
-
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'h0uczsof';
+  if (typeof file === 'string' && file.startsWith('http')) return file;
 
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'unsigned_preset');
+    let base64String = '';
+    if (typeof file === 'string') {
+      base64String = file;
+    } else {
+      base64String = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    const res = await fetch('/api/upload', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64String })
     });
-
     const json = await res.json();
-    if (json.secure_url) {
-      return json.secure_url;
+    if (json.success && json.url) {
+      return json.url;
     }
   } catch (err) {
-    console.error('Cloudinary direct API upload failed, using persistent Base64 fallback:', err);
+    console.error('Cloudinary API upload error:', err);
   }
 
-  // Convert File to Base64 Data URL so it persists permanently in Supabase across all devices
+  if (typeof file === 'string') return file;
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result as string);

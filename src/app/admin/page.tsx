@@ -160,36 +160,42 @@ export default function AdminDashboardPage() {
   const handleAdminDeleteProduct = async (productId: string) => {
     if (!confirm(`CAUTION: Are you sure you want to permanently delete product ${productId}?`)) return;
     try {
+      setProducts(prev => prev.filter(p => p.id !== productId));
+
       const res = await fetch(`/api/products?id=${productId}`, {
         method: 'DELETE'
       });
       const json = await res.json();
       if (json.success) {
         alert('Product deleted successfully.');
-        refreshAdminData();
       } else {
         alert(json.message || 'Failed to delete product.');
+        refreshAdminData();
       }
     } catch {
       alert('Error deleting product.');
+      refreshAdminData();
     }
   };
 
   const handlePurgeAllProducts = async () => {
     if (!confirm('CAUTION: Are you sure you want to delete ALL catalog products and start fresh?')) return;
     try {
+      setProducts([]);
+
       const res = await fetch('/api/products?id=all', {
         method: 'DELETE'
       });
       const json = await res.json();
       if (json.success) {
         alert('All catalog products purged successfully.');
-        refreshAdminData();
       } else {
         alert(json.message || 'Failed to purge products.');
+        refreshAdminData();
       }
     } catch {
       alert('Error purging products.');
+      refreshAdminData();
     }
   };
 
