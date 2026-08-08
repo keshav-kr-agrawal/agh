@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ProductCard } from './ProductCard';
-import { Product, Category } from '@/types';
+import { Product } from '@/types';
 import { useStorefrontStore } from '@/store/useStorefrontStore';
 import { useCartStore } from '@/store/useCartStore';
 import { 
@@ -12,8 +12,9 @@ import {
   Truck, 
   RotateCcw, 
   Search, 
-  Layers,
-  ArrowUpDown
+  ChevronLeft,
+  ChevronRight,
+  Flame
 } from 'lucide-react';
 
 export const MerchandisingGrid: React.FC = () => {
@@ -30,6 +31,7 @@ export const MerchandisingGrid: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchCatalog() {
@@ -66,42 +68,62 @@ export const MerchandisingGrid: React.FC = () => {
     };
   }, [selectedCategory, searchQuery, fulfillmentType, inStockOnly, priceRange]);
 
+  const scrollSideCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -320 : 320;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Hero Banner Header */}
-      <div className="relative mb-10 p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-crimson via-terracotta to-espresso text-cream shadow-xl overflow-hidden border border-gold/30">
-        <div className="relative z-10 max-w-2xl space-y-4">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gold/20 text-gold text-xs font-extrabold rounded-full uppercase tracking-wider border border-gold/30">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+      {/* Rich Hero Banner with Store Background Image */}
+      <div className="relative rounded-3xl overflow-hidden border border-gold/30 shadow-2xl min-h-[360px] flex items-center">
+        {/* Background Business Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=1600&q=80"
+            alt="Anita Gift House Boutique Storefront"
+            className="w-full h-full object-cover object-center scale-105 filter brightness-90"
+          />
+          {/* Warm Dark Gradient Overlay for text contrast */}
+          <div className="absolute inset-0 bg-gradient-to-r from-espresso/95 via-espresso/80 to-espresso/45 backdrop-blur-[1px]" />
+        </div>
+
+        <div className="relative z-10 p-6 sm:p-12 max-w-2xl space-y-5 text-cream">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-gold/20 text-gold text-xs font-extrabold rounded-full uppercase tracking-wider border border-gold/30 backdrop-blur-md shadow-sm">
             <Sparkles className="w-3.5 h-3.5" />
-            Curated Festival & Celebration Catalogue
+            Anita Gift House • Boutique Collection
           </span>
-          <h2 className="text-3xl sm:text-5xl font-serif font-extrabold tracking-tight text-cream">
+
+          <h1 className="text-3xl sm:text-5xl font-serif font-extrabold tracking-tight text-cream leading-tight drop-shadow-md">
             Handpicked Gifts <br />
             <span className="text-gold">Crafted with Love</span>
-          </h2>
-          <p className="text-xs sm:text-sm text-cream/80 leading-relaxed max-w-xl">
-            Explore authentic Kundan Rakhis, solid brass pooja thalis, organic sweet towers, and educational STEM toys. Delivered straight to your doorstep or ready for 2-hour store pickup.
+          </h1>
+
+          <p className="text-xs sm:text-sm text-cream/90 leading-relaxed max-w-xl font-sans drop-shadow-xs">
+            Discover authentic Kundan Rakhis, handcrafted brass poojaware, luxury gourmet hampers, and STEM toys. Order online for express parcel delivery or 2-hour handpicked store pickup.
           </p>
 
           {/* Fulfillment Toggle Bar */}
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <button
               onClick={() => setFulfillmentType('parcel')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-md ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg backdrop-blur-md ${
                 fulfillmentType === 'parcel'
                   ? 'bg-gold text-espresso ring-2 ring-gold-light'
-                  : 'bg-cream/10 text-cream hover:bg-cream/20'
+                  : 'bg-cream/15 text-cream hover:bg-cream/30 border border-cream/20'
               }`}
             >
               <Truck className="w-4 h-4" />
-              Parcel Express Shipping
+              Express Parcel Shipping
             </button>
             <button
               onClick={() => setFulfillmentType('handpicked')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-md ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition shadow-lg backdrop-blur-md ${
                 fulfillmentType === 'handpicked'
                   ? 'bg-amberGold text-espresso ring-2 ring-gold-light'
-                  : 'bg-cream/10 text-cream hover:bg-cream/20'
+                  : 'bg-cream/15 text-cream hover:bg-cream/30 border border-cream/20'
               }`}
             >
               <Store className="w-4 h-4" />
@@ -111,8 +133,54 @@ export const MerchandisingGrid: React.FC = () => {
         </div>
       </div>
 
+      {/* HORIZONTAL SIDE-SCROLLING PRODUCT SHOWCASE */}
+      {products.length > 0 && (
+        <div className="space-y-4 bg-cream-muted border border-cream-border rounded-3xl p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-terracotta flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5 text-gold-dark" /> Horizontal Showcase
+              </span>
+              <h2 className="text-xl font-serif font-bold text-espresso">
+                Featured Bestsellers & New Arrivals
+              </h2>
+            </div>
+
+            {/* Carousel Side Controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => scrollSideCarousel('left')}
+                className="p-2.5 rounded-full bg-cream border border-cream-border text-espresso hover:bg-terracotta hover:text-cream transition shadow-xs"
+                title="Scroll Left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => scrollSideCarousel('right')}
+                className="p-2.5 rounded-full bg-cream border border-cream-border text-espresso hover:bg-terracotta hover:text-cream transition shadow-xs"
+                title="Scroll Right"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Side Scrollable Item Row */}
+          <div
+            ref={carouselRef}
+            className="flex items-stretch gap-4 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 scrollbar-thin scrollbar-thumb-terracotta scrollbar-track-cream-muted scroll-smooth"
+          >
+            {products.map(product => (
+              <div key={`side-${product.id}`} className="min-w-[260px] sm:min-w-[280px] max-w-[280px] snap-start shrink-0">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filter & Controls Toolbar */}
-      <div className="bg-cream-muted border border-cream-border rounded-2xl p-4 mb-8 shadow-sm space-y-4">
+      <div className="bg-cream-muted border border-cream-border rounded-2xl p-4 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs font-bold text-espresso">
             <SlidersHorizontal className="w-4 h-4 text-terracotta" />
@@ -159,7 +227,7 @@ export const MerchandisingGrid: React.FC = () => {
         </div>
       </div>
 
-      {/* Product Grid Layout */}
+      {/* Main Grid Catalog Layout */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
