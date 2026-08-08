@@ -116,9 +116,23 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   clearCart: () => set({ cart: [] }),
-  openCart: () => set({ isCartOpen: true }),
+  openCart: () => {
+    const user = useAuthStore.getState().user;
+    if (!user) {
+      set({ isAuthRequiredModalOpen: true });
+      return;
+    }
+    set({ isCartOpen: true });
+  },
   closeCart: () => set({ isCartOpen: false }),
-  toggleCart: () => set(state => ({ isCartOpen: !state.isCartOpen })),
+  toggleCart: () => {
+    const user = useAuthStore.getState().user;
+    if (!user) {
+      set({ isAuthRequiredModalOpen: true });
+      return;
+    }
+    set(state => ({ isCartOpen: !state.isCartOpen }));
+  },
 
   getSubtotal: () => {
     return get().cart.reduce((total, item) => total + item.product.price * item.quantity, 0);

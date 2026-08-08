@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +19,16 @@ export async function POST(request: NextRequest) {
 
     if (!updatedOrder) {
       return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
+
+    try {
+      await supabase.from('orders').update({
+        payment_status: targetStatus,
+        amount_paid: amountPaid !== undefined ? amountPaid : updatedOrder.amountPaid,
+        admin_notes: adminNotes !== undefined ? adminNotes : updatedOrder.adminNotes
+      }).eq('id', orderId);
+    } catch (e) {
+      console.error('Supabase DB verify payment error:', e);
     }
 
     return NextResponse.json({

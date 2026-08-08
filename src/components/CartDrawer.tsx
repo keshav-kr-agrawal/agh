@@ -21,6 +21,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { PaymentMethod } from '@/types';
 
 export const CartDrawer: React.FC = () => {
@@ -120,6 +121,14 @@ export const CartDrawer: React.FC = () => {
 
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const user = useAuthStore.getState().user;
+    if (!user) {
+      closeCart();
+      useCartStore.getState().openAuthRequiredModal();
+      return;
+    }
+
     if (!customerName || !customerPhone) {
       alert('Please fill in your name and phone number.');
       return;
