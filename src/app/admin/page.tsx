@@ -178,6 +178,24 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handlePurgeAllOrders = async () => {
+    if (!confirm('CAUTION: Are you sure you want to purge ALL sales orders and reset revenue data to ₹0?')) return;
+    try {
+      const res = await fetch('/api/analytics/financials', {
+        method: 'DELETE'
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert('All order sales and revenue data purged cleanly.');
+        refreshAdminData();
+      } else {
+        alert(json.message || 'Failed to purge orders.');
+      }
+    } catch {
+      alert('Error purging orders.');
+    }
+  };
+
   const handlePurgeAllProducts = async () => {
     if (!confirm('CAUTION: Are you sure you want to delete ALL catalog products and start fresh?')) return;
     try {
@@ -386,6 +404,13 @@ export default function AdminDashboardPage() {
               className="px-3.5 py-2 rounded-xl bg-gold/20 text-espresso font-bold border border-gold/40 hover:bg-gold transition flex items-center gap-1"
             >
               🔐 Change Password
+            </button>
+            <button
+              onClick={handlePurgeAllOrders}
+              className="px-3.5 py-2 rounded-xl bg-crimson/10 text-crimson font-bold border border-crimson/20 hover:bg-crimson hover:text-cream transition flex items-center gap-1"
+              title="Purge test sales orders and reset revenue metrics to ₹0"
+            >
+              🧹 Reset Sales Data (₹0)
             </button>
           </div>
         </div>

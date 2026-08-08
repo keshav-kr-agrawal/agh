@@ -376,6 +376,14 @@ class DataStore {
     return { updated: count };
   }
 
+  public purgeAllOrders(): void {
+    this.orders = [];
+    supabaseRealtime.notify({
+      eventType: 'DELETE',
+      table: 'orders'
+    });
+  }
+
   public getOrders(customerPhone?: string): Order[] {
     let result = [...this.orders];
     if (customerPhone) {

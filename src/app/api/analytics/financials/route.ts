@@ -16,7 +16,7 @@ export async function GET() {
     const totalOverheads = overheads.reduce((sum: number, ov: OverheadExpense) => sum + (Number(ov.amount) || 0), 0);
 
     let ordersList: Order[] = [];
-    if (!ordersErr && supaOrders && supaOrders.length > 0) {
+    if (!ordersErr && supaOrders) {
       ordersList = supaOrders.map(o => ({
         id: o.id,
         customerName: o.customer_name,
@@ -46,7 +46,7 @@ export async function GET() {
       ordersList = store.getOrders();
     }
 
-    // Calculate metrics
+    // Calculate metrics strictly for verified/paid orders
     const verifiedOrders = ordersList.filter(
       o => o.paymentStatus === 'VERIFIED' || o.paymentStatus === 'PAY_AT_PICKUP' || o.paymentStatus === 'PARTIALLY_PAID'
     );
@@ -99,47 +99,65 @@ export async function GET() {
     const netProfit = grossProfit - totalOverheads;
     const profitMargin = totalRevenue > 0 ? Number(((netProfit / totalRevenue) * 100).toFixed(1)) : 0;
 
-    const salesByCategory = Object.entries(categoryMap).map(([category, data]) => ({
+    const salesByCategory = Object.entries(categoryMap).map(([category, val]) => ({
       category,
-      count: data.count,
-      revenue: data.revenue
+      count: val.count,
+      revenue: val.revenue
     }));
 
-    const sortedItems = Object.values(itemProfitMap).sort((a, b) => b.profit - a.profit);
-    const topProfitableItems = sortedItems.slice(0, 5).map(i => ({
-      title: i.title,
-      revenue: i.revenue,
-      profit: i.profit
-    }));
+    const topProfitableItems = Object.values(itemProfitMap)
+      .sort((a, b) => b.profit - a.profit)
+      .slice(0, 5);
 
-    const metrics = {
-      totalRevenue,
-      totalCost,
-      totalOverheads,
-      grossProfit,
-      netProfit,
-      profitMargin,
-      handpickedOrdersCount,
-      parcelOrdersCount,
-      totalOrdersCount: ordersList.length,
-      verifiedOrdersCount: verifiedOrders.length,
-      salesByCategory,
-      topProfitableItems
-    };
+    // Group verified orders by date for daily trends
+    const dailyMap: Record<string, { date: string; revenue: number; cost: number; profit: number }> = {};
+    verifiedOrders.forEach(o => {
+      const d = o.createdAt ? o.createdAt.split('T')[0] : new Date().toISOString().split('T')[0];
+      const collected = o.amountPaid !== undefined && o.amountPaid > 0 ? o.amountPaid : o.total;
+      const orderCost = (o.items || []).reduce((sum, i) => sum + ((i.product?.costPrice || 0) * i.quantity), 0);
+      const orderProfit = collected - orderCost;
 
-    return NextResponse.json({ success: true, data: metrics, overheads });
-  } catch (err: any) {
-    console.error('Financials API error:', err);
-    return NextResponse.json({ success: false, data: store.getFinancialMetrics() });
+      if (!dailyMap[d]) dailyMap[d] = { date: d, revenue: 0, cost: 0, profit: 0 };
+      dailyMap[d].revenue += collected;
+      dailyMap[d].cost += orderCost;
+      dailyMap[d].profit += orderProfit;
+    });
+
+    const dailyTrends = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        totalRevenue,
+        totalCost,
+        grossProfit,
+        totalOverheads,
+        netProfit,
+        profitMargin,
+        handpickedOrdersCount,
+        parcelOrdersCount,
+        salesByCategory,
+        topProfitableItems,
+        dailyTrends,
+        overheadsList: overheads
+      }
+    });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: 'Failed to compute financial metrics' }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function DELETE() {
   try {
-    const body = await request.json();
-    const newOverhead = store.addOverhead(body);
-    return NextResponse.json({ success: true, data: newOverhead });
+    // Purge all orders from store memory & Supabase DB
+    store.purgeAllOrders();
+    try {
+      await supabase.from('orders').delete().neq('id', '0');
+    } catch (e) {
+      console.error('Supabase orders purge warning:', e);
+    }
+    return NextResponse.json({ success: true, message: 'All orders purged cleanly.' });
   } catch (error) {
-    return NextResponse.json({ success: false, message: 'Failed to add overhead' }, { status: 400 });
+    return NextResponse.json({ success: false, message: 'Purge failed' }, { status: 500 });
   }
 }
