@@ -90,6 +90,15 @@ export const CartDrawer: React.FC = () => {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const user = useAuthStore.getState().user;
+    if (user) {
+      if (user.name && !customerName) setCustomerName(user.name);
+      if (user.phone && !customerPhone) setCustomerPhone(user.phone);
+      if (user.email && !customerEmail) setCustomerEmail(user.email);
+    }
+  }, [isCartOpen, step]);
+
   if (!isCartOpen) return null;
 
   const subtotal = getSubtotal();
@@ -623,7 +632,18 @@ export const CartDrawer: React.FC = () => {
               </div>
 
               <button
-                onClick={() => setStep('details')}
+                onClick={() => {
+                  const currentUser = useAuthStore.getState().user;
+                  if (!currentUser) {
+                    closeCart();
+                    useCartStore.getState().openAuthRequiredModal();
+                    return;
+                  }
+                  if (currentUser.name) setCustomerName(currentUser.name);
+                  if (currentUser.phone) setCustomerPhone(currentUser.phone);
+                  if (currentUser.email) setCustomerEmail(currentUser.email);
+                  setStep('details');
+                }}
                 className="w-full py-3 bg-terracotta text-cream font-bold text-xs uppercase tracking-wider rounded-xl shadow hover:bg-crimson transition flex items-center justify-center gap-2"
               >
                 Proceed to Checkout <ArrowRight className="w-4 h-4 text-gold" />

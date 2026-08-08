@@ -16,6 +16,7 @@ import {
   Store, 
   DollarSign, 
   Eye, 
+  EyeOff,
   Sparkles,
   Edit3,
   X,
@@ -44,6 +45,9 @@ export default function AdminDashboardPage() {
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
+  const [showCurrentPin, setShowCurrentPin] = useState(false);
+  const [showNewPin, setShowNewPin] = useState(false);
+  const [showConfirmPin, setShowConfirmPin] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -1167,40 +1171,67 @@ export default function AdminDashboardPage() {
             <form onSubmit={handleChangeAdminPassword} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-espresso mb-1">Current Password / PIN *</label>
-                <input
-                  type="password"
-                  required
-                  value={currentPin}
-                  onChange={e => setCurrentPin(e.target.value)}
-                  placeholder="Enter current PIN (e.g. 9199)"
-                  className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPin ? 'text' : 'password'}
+                    required
+                    value={currentPin}
+                    onChange={e => setCurrentPin(e.target.value)}
+                    placeholder="Enter current PIN (e.g. 9199)"
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPin(!showCurrentPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/60 hover:text-espresso"
+                  >
+                    {showCurrentPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block font-bold text-espresso mb-1">New Secret Password / PIN *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={4}
-                  value={newPin}
-                  onChange={e => setNewPin(e.target.value)}
-                  placeholder="Enter new secret password"
-                  className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPin ? 'text' : 'password'}
+                    required
+                    minLength={4}
+                    value={newPin}
+                    onChange={e => setNewPin(e.target.value)}
+                    placeholder="Enter new secret password"
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPin(!showNewPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/60 hover:text-espresso"
+                  >
+                    {showNewPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block font-bold text-espresso mb-1">Confirm New Password *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={4}
-                  value={confirmPin}
-                  onChange={e => setConfirmPin(e.target.value)}
-                  placeholder="Re-enter new secret password"
-                  className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPin ? 'text' : 'password'}
+                    required
+                    minLength={4}
+                    value={confirmPin}
+                    onChange={e => setConfirmPin(e.target.value)}
+                    placeholder="Re-enter new secret password"
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPin(!showConfirmPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/60 hover:text-espresso"
+                  >
+                    {showConfirmPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-3 flex justify-end gap-2">

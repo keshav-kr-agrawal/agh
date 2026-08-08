@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, UserCheck, Key, ArrowRight, Store } from 'lucide-react';
+import { ShieldCheck, UserCheck, Key, ArrowRight, Store, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import Link from 'next/link';
 
@@ -12,6 +12,7 @@ export default function AdminLoginPage() {
 
   const [identifier, setIdentifier] = useState('HKW1321');
   const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -68,14 +69,24 @@ export default function AdminLoginPage() {
             <label className="block font-bold text-espresso mb-1 flex items-center gap-1.5">
               <Key className="w-4 h-4 text-gold-dark" /> Password / PIN *
             </label>
-            <input
-              type="password"
-              required
-              value={pin}
-              onChange={e => setPin(e.target.value)}
-              placeholder="Enter Password (Default: 9199)"
-              className="w-full px-3.5 py-2.5 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm focus:ring-2 focus:ring-terracotta"
-            />
+            <div className="relative">
+              <input
+                type={showPin ? 'text' : 'password'}
+                required
+                value={pin}
+                onChange={e => setPin(e.target.value)}
+                placeholder="Enter Password (Default: 9199)"
+                className="w-full px-3.5 py-2.5 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm focus:ring-2 focus:ring-terracotta pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPin(!showPin)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-espresso/60 hover:text-espresso"
+                title={showPin ? 'Hide password' : 'Show password'}
+              >
+                {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <button
