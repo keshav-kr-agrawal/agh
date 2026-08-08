@@ -73,25 +73,33 @@ export const ProductDetailModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-espresso/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
-      <div className="relative w-full max-w-4xl bg-cream border border-cream-border rounded-3xl shadow-2xl overflow-hidden animate-slideUp">
-        {/* Close Button */}
-        <button
-          onClick={() => setSelectedProduct(null)}
-          className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-cream-muted text-espresso/70 hover:text-espresso hover:bg-cream-border transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setSelectedProduct(null);
+      }}
+      className="fixed inset-0 z-50 overflow-y-auto bg-espresso/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 animate-fadeIn"
+    >
+      <div className="relative w-full max-w-4xl max-h-[92vh] bg-cream border border-cream-border rounded-3xl shadow-2xl overflow-y-auto animate-slideUp flex flex-col my-auto">
+        {/* Sticky Mobile & Desktop Close Button */}
+        <div className="sticky top-3 right-3 z-30 flex justify-end p-2 pointer-events-none">
+          <button
+            onClick={() => setSelectedProduct(null)}
+            className="pointer-events-auto p-2.5 rounded-full bg-espresso text-cream sm:bg-cream-muted sm:text-espresso hover:bg-crimson hover:text-cream transition shadow-xl border border-cream-border"
+            title="Close Product Preview"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Multi-Photo Carousel */}
-          <div className="p-6 bg-cream-muted border-b md:border-b-0 md:border-r border-cream-border flex flex-col justify-between">
-            <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-cream-border shadow-inner group">
+        <div className="grid grid-cols-1 md:grid-cols-2 -mt-12 sm:mt-0">
+          {/* Multi-Photo Carousel (Mobile Constrained max-h-[260px]) */}
+          <div className="p-4 sm:p-6 bg-cream-muted border-b md:border-b-0 md:border-r border-cream-border flex flex-col justify-between">
+            <div className="relative w-full aspect-square max-h-[260px] sm:max-h-[380px] rounded-2xl overflow-hidden border border-cream-border shadow-inner group mx-auto bg-cream">
               {images.length > 0 && getOptimizedImageUrl(images[activeImageIndex]) ? (
                 <img
                   src={getOptimizedImageUrl(images[activeImageIndex], { width: 800, height: 800 })}
                   alt={selectedProduct.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-2"
                 />
               ) : (
                 <SvgProductPlaceholder category={selectedProduct.category} title={selectedProduct.title} />
@@ -101,13 +109,13 @@ export const ProductDetailModal: React.FC = () => {
                 <>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-cream/80 text-espresso hover:bg-cream transition"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-cream/90 text-espresso hover:bg-cream transition shadow-md"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setActiveImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-cream/80 text-espresso hover:bg-cream transition"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-cream/90 text-espresso hover:bg-cream transition shadow-md"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -117,12 +125,12 @@ export const ProductDetailModal: React.FC = () => {
 
             {/* Thumbnail Row */}
             {images.length > 1 && (
-              <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-1">
+              <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
+                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition shrink-0 ${
                       idx === activeImageIndex ? 'border-terracotta scale-105' : 'border-transparent opacity-70'
                     }`}
                   >
@@ -134,40 +142,40 @@ export const ProductDetailModal: React.FC = () => {
           </div>
 
           {/* Details & Lookup Column */}
-          <div className="p-6 md:p-8 flex flex-col justify-between space-y-6 max-h-[80vh] overflow-y-auto">
+          <div className="p-4 sm:p-8 flex flex-col justify-between space-y-5">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-3 py-1 bg-terracotta/10 text-terracotta text-xs font-extrabold rounded-full uppercase tracking-wider">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="px-3 py-1 bg-terracotta/10 text-terracotta text-[11px] font-extrabold rounded-full uppercase tracking-wider">
                   {selectedProduct.category}
                 </span>
                 {selectedProduct.urgencyFlag && (
-                  <span className="px-3 py-1 bg-crimson text-cream text-xs font-bold rounded-full flex items-center gap-1">
+                  <span className="px-3 py-1 bg-crimson text-cream text-[11px] font-bold rounded-full flex items-center gap-1">
                     <Flame className="w-3 h-3 text-gold" /> High Demand
                   </span>
                 )}
               </div>
 
-              <h2 className="text-2xl font-serif font-bold text-espresso mb-2">
+              <h2 className="text-xl sm:text-2xl font-serif font-bold text-espresso mb-2">
                 {selectedProduct.title}
               </h2>
 
-              <div className="flex items-center gap-4 text-xs mb-4">
+              <div className="flex items-center gap-4 text-xs mb-3">
                 <span className={`font-semibold ${selectedProduct.stock <= 5 ? 'text-crimson' : 'text-emerald-700'}`}>
                   {selectedProduct.stock > 0 ? `In Stock (${selectedProduct.stock} left)` : 'Out of Stock'}
                 </span>
               </div>
 
               {/* Price Display */}
-              <div className="flex items-baseline gap-3 mb-4 p-3 bg-cream-muted rounded-2xl border border-cream-border">
-                <span className="text-2xl font-bold font-mono text-crimson">
+              <div className="flex items-baseline gap-3 mb-4 p-3 bg-cream-muted rounded-2xl border border-cream-border flex-wrap">
+                <span className="text-xl sm:text-2xl font-bold font-mono text-crimson">
                   ₹{selectedProduct.price.toLocaleString('en-IN')}
                 </span>
                 {selectedProduct.mrp > selectedProduct.price && (
-                  <span className="text-sm text-espresso/40 line-through font-mono">
+                  <span className="text-xs text-espresso/40 line-through font-mono">
                     MRP: ₹{selectedProduct.mrp.toLocaleString('en-IN')}
                   </span>
                 )}
-                <span className="text-xs font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
                   Inclusive of All Charges
                 </span>
               </div>
@@ -178,11 +186,11 @@ export const ProductDetailModal: React.FC = () => {
 
               {/* Key Specs Table */}
               {selectedProduct.specs && Object.keys(selectedProduct.specs).length > 0 && (
-                <div className="mb-6 border border-cream-border rounded-xl p-3 bg-cream-muted/50 text-xs">
+                <div className="mb-4 border border-cream-border rounded-xl p-3 bg-cream-muted/50 text-xs">
                   <p className="font-bold text-espresso mb-2 uppercase text-[11px] tracking-wide">Key Specifications</p>
                   <div className="space-y-1.5">
                     {Object.entries(selectedProduct.specs).map(([key, val]) => (
-                      <div key={key} className="flex justify-between border-b border-cream-border/40 pb-1">
+                      <div key={key} className="flex justify-between border-b border-cream-border/40 pb-1 text-[11px]">
                         <span className="text-espresso/60">{key}:</span>
                         <span className="font-semibold text-espresso">{val}</span>
                       </div>
@@ -192,7 +200,7 @@ export const ProductDetailModal: React.FC = () => {
               )}
 
               {/* Pincode Lookup Placeholder */}
-              <div className="border border-cream-border rounded-2xl p-4 bg-cream-muted mb-6">
+              <div className="border border-cream-border rounded-2xl p-3 sm:p-4 bg-cream-muted mb-4">
                 <label className="block text-xs font-bold text-espresso mb-2 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-terracotta" /> Delivery Pincode Lookup
                 </label>
@@ -207,7 +215,7 @@ export const ProductDetailModal: React.FC = () => {
                   />
                   <button
                     type="submit"
-                    className="px-4 py-1.5 bg-terracotta text-cream text-xs font-bold rounded-lg hover:bg-crimson transition"
+                    className="px-3.5 py-1.5 bg-terracotta text-cream text-xs font-bold rounded-lg hover:bg-crimson transition"
                   >
                     Check
                   </button>
@@ -222,9 +230,9 @@ export const ProductDetailModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="space-y-3 pt-4 border-t border-cream-border">
-              <div className="flex items-center gap-3">
+            {/* Bottom Actions & Mobile Exit Button */}
+            <div className="space-y-3 pt-3 border-t border-cream-border">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="flex items-center border border-cream-border rounded-xl bg-cream-muted px-2 py-1">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -232,7 +240,7 @@ export const ProductDetailModal: React.FC = () => {
                   >
                     -
                   </button>
-                  <span className="px-3 text-sm font-bold font-mono">{quantity}</span>
+                  <span className="px-2.5 text-xs font-bold font-mono">{quantity}</span>
                   <button
                     onClick={() => setQuantity(Math.min(selectedProduct.stock, quantity + 1))}
                     className="px-2 text-sm font-bold text-espresso hover:text-terracotta"
@@ -249,10 +257,10 @@ export const ProductDetailModal: React.FC = () => {
                     }
                   }}
                   disabled={isOutOfStock}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-terracotta to-crimson text-cream font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-110 transition disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 bg-gradient-to-r from-terracotta to-crimson text-cream font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-110 transition disabled:opacity-50"
                 >
                   <ShoppingBag className="w-4 h-4 text-gold" />
-                  Add to Cart • ₹{(selectedProduct.price * quantity).toLocaleString('en-IN')}
+                  {isOutOfStock ? 'Sold Out' : `Add to Cart • ₹${(selectedProduct.price * quantity).toLocaleString('en-IN')}`}
                 </button>
 
                 <button
@@ -261,11 +269,19 @@ export const ProductDetailModal: React.FC = () => {
                     isWishlisted ? 'bg-crimson text-cream' : 'bg-cream text-espresso hover:bg-cream-muted'
                   }`}
                 >
-                  <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                  <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
                 </button>
               </div>
 
-              <div className="flex items-center justify-center gap-6 text-[11px] text-espresso/60 font-medium pt-1">
+              {/* Explicit Mobile Bottom Close Button */}
+              <button
+                onClick={() => setSelectedProduct(null)}
+                className="w-full py-2 bg-cream-muted border border-cream-border text-espresso/70 font-semibold text-xs rounded-xl hover:bg-cream-border transition block sm:hidden"
+              >
+                Close Preview
+              </button>
+
+              <div className="flex items-center justify-center gap-4 text-[10px] text-espresso/60 font-medium pt-1">
                 <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-gold-dark" /> 100% Authentic Quality</span>
                 <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5 text-terracotta" /> Fast Delhivery Express</span>
               </div>
