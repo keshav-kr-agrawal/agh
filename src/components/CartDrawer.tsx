@@ -387,6 +387,17 @@ export const CartDrawer: React.FC = () => {
 
             {step === 'payment' && (
               <div className="space-y-5 text-center">
+                {/* Back / Change Payment Method Button at Top */}
+                <div className="flex items-center justify-between border-b border-cream-border pb-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep('details')}
+                    className="text-xs font-bold text-terracotta hover:underline flex items-center gap-1"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Change Payment Method / Edit Details
+                  </button>
+                </div>
+
                 <div className="p-6 bg-cream-muted border-2 border-gold/40 rounded-3xl space-y-3 shadow-inner">
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/20 text-espresso rounded-full text-xs font-bold">
                     <QrCode className="w-4 h-4 text-terracotta" />
@@ -466,6 +477,14 @@ export const CartDrawer: React.FC = () => {
                   >
                     <MessageSquare className="w-4 h-4" />
                     Send Payment Proof via WhatsApp (+91 9199272836)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setStep('details')}
+                    className="w-full py-2 bg-cream-muted border border-cream-border text-espresso font-bold text-xs rounded-xl hover:bg-cream-border transition flex items-center justify-center gap-1 mt-1"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back / Choose Pay at Pickup
                   </button>
                 </div>
               </div>
