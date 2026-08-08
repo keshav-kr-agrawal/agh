@@ -11,7 +11,7 @@ export const AuthRequiredModal: React.FC = () => {
   if (!isAuthRequiredModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-4 font-sans animate-fadeIn">
+    <div className="fixed inset-0 z-[99999] overflow-y-auto bg-espresso/80 backdrop-blur-md flex items-center justify-center p-4 font-sans animate-fadeIn">
       <div className="relative w-full max-w-md bg-cream border border-cream-border rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center animate-scaleUp">
         <button
           onClick={closeAuthRequiredModal}
