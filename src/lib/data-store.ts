@@ -137,24 +137,7 @@ const initialProducts: Product[] = [
 ];
 
 // Initial Seed Overheads
-const initialOverheads: OverheadExpense[] = [
-  {
-    id: 'ov-1',
-    title: 'Custom Gift Packing Boxes & Satin Ribbons',
-    amount: 1500,
-    category: 'Packaging',
-    notes: 'Bulk purchase of velvet gift boxes',
-    date: '2026-08-02'
-  },
-  {
-    id: 'ov-2',
-    title: 'Shop Electricity & Air Conditioning Bill',
-    amount: 2200,
-    category: 'Electricity',
-    notes: 'August 2026 shop utility bill',
-    date: '2026-08-05'
-  }
-];
+const initialOverheads: OverheadExpense[] = [];
 
 // Initial Seed Coupons
 const initialCoupons: Coupon[] = [
