@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <rect width="400" height="400" fill="#FFFDF9" rx="32"/>
+  <rect x="20" y="20" width="360" height="360" fill="none" stroke="#D4AF37" stroke-width="4" rx="24" stroke-dasharray="8 8"/>
+  
+  <!-- Outer Corner Positioning Squares -->
+  <rect x="50" y="50" width="90" height="90" fill="#221C1B" rx="16"/>
+  <rect x="65" y="65" width="60" height="60" fill="#FFFDF9" rx="10"/>
+  <rect x="78" y="78" width="34" height="34" fill="#8B3A2B" rx="6"/>
+
+  <rect x="260" y="50" width="90" height="90" fill="#221C1B" rx="16"/>
+  <rect x="275" y="65" width="60" height="60" fill="#FFFDF9" rx="10"/>
+  <rect x="288" y="78" width="34" height="34" fill="#8B3A2B" rx="6"/>
+
+  <rect x="50" y="260" width="90" height="90" fill="#221C1B" rx="16"/>
+  <rect x="65" y="275" width="60" height="60" fill="#FFFDF9" rx="10"/>
+  <rect x="78" y="288" width="34" height="34" fill="#8B3A2B" rx="6"/>
+
+  <!-- Simulated QR Matrix Patterns -->
+  <rect x="160" y="50" width="30" height="30" fill="#221C1B" rx="4"/>
+  <rect x="205" y="50" width="35" height="20" fill="#8B3A2B" rx="4"/>
+  <rect x="160" y="95" width="40" height="25" fill="#7A1C1C" rx="4"/>
+  <rect x="215" y="90" width="25" height="50" fill="#221C1B" rx="4"/>
+
+  <rect x="50" y="160" width="45" height="30" fill="#8B3A2B" rx="4"/>
+  <rect x="110" y="155" width="30" height="40" fill="#221C1B" rx="4"/>
+  
+  <!-- Center Brand Crest -->
+  <rect x="150" y="150" width="100" height="100" fill="#7A1C1C" rx="20" stroke="#D4AF37" stroke-width="4"/>
+  <text x="200" y="195" font-family="Georgia, serif" font-weight="bold" font-size="22" fill="#D4AF37" text-anchor="middle">AGH</text>
+  <text x="200" y="220" font-family="sans-serif" font-weight="bold" font-size="10" fill="#FFFDF9" text-anchor="middle">UPI PAY</text>
+
+  <rect x="270" y="160" width="40" height="40" fill="#8B3A2B" rx="4"/>
+  <rect x="320" y="150" width="30" height="60" fill="#221C1B" rx="4"/>
+
+  <rect x="160" y="270" width="60" height="30" fill="#221C1B" rx="4"/>
+  <rect x="235" y="260" width="45" height="45" fill="#7A1C1C" rx="4"/>
+  <rect x="295" y="270" width="55" height="30" fill="#8B3A2B" rx="4"/>
+
+  <rect x="160" y="315" width="40" height="35" fill="#8B3A2B" rx="4"/>
+  <rect x="215" y="320" width="70" height="30" fill="#221C1B" rx="4"/>
+  <rect x="300" y="315" width="50" height="35" fill="#7A1C1C" rx="4"/>
+
+  <!-- Footer Tag -->
+  <text x="200" y="380" font-family="sans-serif" font-weight="bold" font-size="12" fill="#221C1B" text-anchor="middle">Anita Gift House • +91 9199272836</text>
+</svg>
