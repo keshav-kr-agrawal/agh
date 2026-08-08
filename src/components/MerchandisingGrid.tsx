@@ -33,7 +33,6 @@ export const MerchandisingGrid: React.FC = () => {
 
   useEffect(() => {
     async function fetchCatalog() {
-      setLoading(true);
       try {
         const queryParams = new URLSearchParams();
         if (selectedCategory && selectedCategory !== 'All') queryParams.set('category', selectedCategory);
@@ -55,6 +54,16 @@ export const MerchandisingGrid: React.FC = () => {
     }
 
     fetchCatalog();
+
+    // Real-Time Stock Polling & Window Focus Refetch
+    const interval = setInterval(fetchCatalog, 4000);
+    const handleFocus = () => fetchCatalog();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [selectedCategory, searchQuery, fulfillmentType, inStockOnly, priceRange]);
 
   return (

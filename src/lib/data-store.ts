@@ -1,5 +1,5 @@
 import { Product, Order, FinancialMetrics, Coupon, StoreBanner, MonthlyFinancialSummary, Category, OverheadExpense, PaymentStatus, PaymentSettings } from '@/types';
-import { supabaseRealtime } from './supabase';
+import { supabase, supabaseRealtime } from './supabase';
 
 // Initial Seed Products
 const initialProducts: Product[] = [
@@ -415,6 +415,17 @@ class DataStore {
       updatedAt: now
     };
 
+    // Deduct inventory stock immediately
+    orderData.items.forEach(async (item) => {
+      const prod = this.products.find(p => p.id === item.product.id);
+      if (prod) {
+        prod.stock = Math.max(0, prod.stock - item.quantity);
+        try {
+          await supabase.from('products').update({ stock: prod.stock }).eq('id', prod.id);
+        } catch (e) {}
+      }
+    });
+
     this.orders.unshift(newOrder);
 
     supabaseRealtime.notify({
@@ -441,10 +452,13 @@ class DataStore {
     order.updatedAt = new Date().toISOString();
 
     // Restore inventory stock
-    order.items.forEach(item => {
+    order.items.forEach(async (item) => {
       const prod = this.products.find(p => p.id === item.product.id);
       if (prod) {
         prod.stock += item.quantity;
+        try {
+          await supabase.from('products').update({ stock: prod.stock }).eq('id', prod.id);
+        } catch (e) {}
       }
     });
 
