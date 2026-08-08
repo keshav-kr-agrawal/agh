@@ -175,6 +175,24 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handlePurgeAllProducts = async () => {
+    if (!confirm('CAUTION: Are you sure you want to delete ALL catalog products and start fresh?')) return;
+    try {
+      const res = await fetch('/api/products?id=all', {
+        method: 'DELETE'
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert('All catalog products purged successfully.');
+        refreshAdminData();
+      } else {
+        alert(json.message || 'Failed to purge products.');
+      }
+    } catch {
+      alert('Error purging products.');
+    }
+  };
+
   const refreshAdminData = async () => {
     setLoading(true);
     try {
@@ -432,30 +450,38 @@ export default function AdminDashboardPage() {
         {/* TAB 2: INVENTORY & PHOTO MANAGEMENT */}
         {activeTab === 'inventory' && (
           <div className="space-y-6 animate-fadeIn">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h2 className="text-xl font-serif font-bold text-espresso">
                 Catalogue Inventory & Photo Management
               </h2>
-              <button
-                onClick={() => {
-                  setEditingProduct({
-                    title: '',
-                    category: 'Gifts',
-                    costPrice: 500,
-                    mrp: 1499,
-                    price: 999,
-                    stock: 10,
-                    priorityScore: 50,
-                    urgencyFlag: false,
-                    isHandpickedFeatured: false,
-                    images: []
-                  });
-                  setIsProductModalOpen(true);
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-terracotta text-cream text-xs font-bold rounded-xl shadow hover:bg-crimson transition"
-              >
-                <Plus className="w-4 h-4" /> Add Product (With Photo Snap)
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePurgeAllProducts}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-crimson/10 border border-crimson/20 text-crimson text-xs font-bold rounded-xl hover:bg-crimson hover:text-cream transition shadow-xs"
+                >
+                  <Trash2 className="w-4 h-4" /> Purge All Products
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProduct({
+                      title: '',
+                      category: 'Gifts',
+                      costPrice: 500,
+                      mrp: 1499,
+                      price: 999,
+                      stock: 10,
+                      priorityScore: 50,
+                      urgencyFlag: false,
+                      isHandpickedFeatured: false,
+                      images: []
+                    });
+                    setIsProductModalOpen(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-terracotta text-cream text-xs font-bold rounded-xl shadow hover:bg-crimson transition"
+                >
+                  <Plus className="w-4 h-4" /> Add Product (With Photo Snap)
+                </button>
+              </div>
             </div>
 
             {/* Inventory Table with Clickable Photos */}

@@ -322,6 +322,22 @@ class DataStore {
     return newProd;
   }
 
+  public deleteProduct(id: string): boolean {
+    const initialCount = this.products.length;
+    this.products = this.products.filter(p => p.id !== id);
+    const wasDeleted = this.products.length < initialCount;
+
+    if (wasDeleted) {
+      supabaseRealtime.notify({
+        eventType: 'DELETE',
+        table: 'products',
+        oldRecord: { id }
+      });
+    }
+
+    return wasDeleted;
+  }
+
   public batchUpdateProducts(ids: string[], action: {
     category?: Category;
     discountPercent?: number;
@@ -358,18 +374,6 @@ class DataStore {
     });
 
     return { updated: count };
-  }
-
-  public deleteProduct(id: string): boolean {
-    const initialLen = this.products.length;
-    this.products = this.products.filter(p => p.id !== id);
-    
-    supabaseRealtime.notify({
-      eventType: 'DELETE',
-      table: 'products'
-    });
-
-    return this.products.length < initialLen;
   }
 
   public getOrders(customerPhone?: string): Order[] {

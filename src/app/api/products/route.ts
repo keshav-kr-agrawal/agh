@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('category', category);
     }
     const { data: supaProds, error } = await query;
-    if (!error && supaProds && supaProds.length > 0) {
+    if (!error && supaProds) {
       const formatted = supaProds.map(p => ({
         id: p.id,
         title: p.title,
@@ -96,12 +96,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Missing product ID' }, { status: 400 });
     }
 
-    // Delete from memory store
-    const deleted = store.deleteProduct(id);
+    if (id === 'all') {
+      // Purge all products
+      const currentProds = store.getProducts();
+      currentProds.forEach(p => store.deleteProduct(p.id));
+      try {
+        await supabase.from('products').delete().neq('id', '0');
+      } catch (e) {
+        console.error('Supabase purge error:', e);
+      }
+      return NextResponse.json({ success: true, message: 'All products purged' });
+    }
 
-    // Delete from Supabase DB
+    // Delete single product
+    store.deleteProduct(id);
+
     try {
-      await supabase.from('products').delete().eq('id', id);
+      const { error } = await supabase.from('products').delete().eq('id', id);
+      if (error) console.error('Supabase product delete warning:', error);
     } catch (e) {
       console.error('Supabase product delete error:', e);
     }
