@@ -167,7 +167,8 @@ const initialCoupons: Coupon[] = [
     usageLimit: 500,
     usageCount: 42,
     expiryDate: '2026-12-31',
-    active: true
+    active: true,
+    isPublic: true
   },
   {
     id: 'c-2',
@@ -178,7 +179,8 @@ const initialCoupons: Coupon[] = [
     usageLimit: 200,
     usageCount: 88,
     expiryDate: '2026-09-15',
-    active: true
+    active: true,
+    isPublic: true
   },
   {
     id: 'c-3',
@@ -189,7 +191,8 @@ const initialCoupons: Coupon[] = [
     usageLimit: 1000,
     usageCount: 156,
     expiryDate: '2026-12-31',
-    active: true
+    active: true,
+    isPublic: true
   },
   {
     id: 'c-4',
@@ -200,7 +203,8 @@ const initialCoupons: Coupon[] = [
     usageLimit: 5000,
     usageCount: 12,
     expiryDate: '2026-12-31',
-    active: true
+    active: true,
+    isPublic: true
   }
 ];
 
@@ -569,7 +573,8 @@ class DataStore {
       usageLimit: coupon.usageLimit || 100,
       usageCount: 0,
       expiryDate: coupon.expiryDate || '2026-12-31',
-      active: coupon.active !== undefined ? coupon.active : true
+      active: coupon.active !== undefined ? coupon.active : true,
+      isPublic: coupon.isPublic !== undefined ? coupon.isPublic : true
     };
 
     this.coupons.unshift(newCoupon);

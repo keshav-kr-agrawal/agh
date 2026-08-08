@@ -71,6 +71,7 @@ export interface Coupon {
   usageCount: number;
   expiryDate: string;
   active: boolean;
+  isPublic?: boolean;
   applicableCategory?: Category | 'All' | 'SelectedProducts';
   applicableProductIds?: string[];
 }

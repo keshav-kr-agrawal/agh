@@ -504,14 +504,28 @@ export default function AdminPromotionsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-espresso mb-1">Min Order Value (₹)</label>
+                  <label className="block font-bold text-espresso mb-1">Min Order Value (₹) *</label>
                   <input
                     type="number"
                     value={editingCoupon.minCartValue || 0}
                     onChange={e => setEditingCoupon({ ...editingCoupon, minCartValue: Number(e.target.value) })}
+                    placeholder="e.g. 499"
                     className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Public Visibility Toggle */}
+              <div className="p-3 bg-gold/10 border border-gold/30 rounded-2xl">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-espresso text-xs">
+                  <input
+                    type="checkbox"
+                    checked={editingCoupon.isPublic !== false}
+                    onChange={e => setEditingCoupon({ ...editingCoupon, isPublic: e.target.checked })}
+                    className="rounded text-terracotta focus:ring-terracotta w-4 h-4"
+                  />
+                  <span>Show this Coupon Publicly in Customer Cart (1-Click Apply for Shoppers)</span>
+                </label>
               </div>
 
               {/* APPLICABILITY SCOPE: ALL VS CATEGORY VS SPECIFIC SELECTED PRODUCTS */}
