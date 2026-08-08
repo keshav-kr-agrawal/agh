@@ -238,8 +238,10 @@ export const ProductDetailModal: React.FC = () => {
 
                 <button
                   onClick={() => {
-                    addToCart(selectedProduct, quantity);
-                    setSelectedProduct(null);
+                    const added = addToCart(selectedProduct, quantity);
+                    if (added) {
+                      setSelectedProduct(null);
+                    }
                   }}
                   disabled={isOutOfStock}
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-terracotta to-crimson text-cream font-bold text-xs uppercase tracking-wider rounded-xl shadow-md hover:brightness-110 transition disabled:opacity-50"

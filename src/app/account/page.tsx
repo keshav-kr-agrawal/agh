@@ -33,7 +33,7 @@ export default function CustomerAccountPage() {
         const filtered = json.data.filter((o: Order) => 
           o.customerPhone.replace(/\s+/g, '') === userPhoneClean || o.customerName === user!.name
         );
-        setOrders(filtered.length > 0 ? filtered : json.data.slice(0, 2));
+        setOrders(filtered);
       }
     } catch (e) {
       console.error(e);

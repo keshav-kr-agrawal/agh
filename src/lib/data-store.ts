@@ -202,54 +202,7 @@ const initialBanner: StoreBanner = {
 };
 
 // Initial Orders
-const initialOrders: Order[] = [
-  {
-    id: 'AGH-ORD-8821',
-    customerName: 'Priya Sharma',
-    customerPhone: '+91 98765 43210',
-    customerEmail: 'priya.sharma@example.com',
-    address: 'B-402, Sunshine Heights, M.G. Road, Bengaluru',
-    pincode: '560001',
-    fulfillmentType: 'parcel',
-    paymentMethod: 'online_upi',
-    items: [
-      { product: initialProducts[0], quantity: 1 },
-      { product: initialProducts[5], quantity: 1 }
-    ],
-    subtotal: 1598,
-    shippingFee: 60,
-    discount: 100,
-    total: 1558,
-    amountPaid: 1558,
-    paymentStatus: 'VERIFIED',
-    orderStage: 'DISPATCHED',
-    trackingNumber: 'AGH-TRK-984720',
-    createdAt: '2026-08-06T11:20:00Z',
-    updatedAt: '2026-08-06T12:00:00Z'
-  },
-  {
-    id: 'AGH-ORD-8822',
-    customerName: 'Rajesh Agarwal',
-    customerPhone: '+91 98112 33445',
-    customerEmail: 'rajesh.a@example.com',
-    address: 'Anita Gift House Store Pickup (Handpicked)',
-    pincode: '110001',
-    fulfillmentType: 'handpicked',
-    paymentMethod: 'pay_at_pickup',
-    items: [
-      { product: initialProducts[2], quantity: 1 }
-    ],
-    subtotal: 2799,
-    shippingFee: 0,
-    discount: 200,
-    total: 2599,
-    amountPaid: 2599,
-    paymentStatus: 'PAY_AT_PICKUP',
-    orderStage: 'PACKED',
-    createdAt: '2026-08-07T09:15:00Z',
-    updatedAt: '2026-08-07T09:30:00Z'
-  }
-];
+const initialOrders: Order[] = [];
 
 const initialPaymentSettings: PaymentSettings = {
   upiId: '9199272836@okbizaxis',

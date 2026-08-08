@@ -18,6 +18,11 @@ export function getOptimizedImageUrl(
     return 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
   }
 
+  // If base64 data URL, return directly
+  if (originalUrl.startsWith('data:image')) {
+    return originalUrl;
+  }
+
   // If already Cloudinary URL, inject transformations
   if (originalUrl.includes('res.cloudinary.com')) {
     const { width = 800, crop = 'fill', quality = 'auto', format = 'webp' } = options;
@@ -35,17 +40,37 @@ export function getOptimizedImageUrl(
 }
 
 /**
- * Mock Cloudinary Direct Upload Function
- * Accepts File or Base64 and simulates high-speed WebP image upload returning CDN URL
+ * Real Cloudinary Direct Upload Function
+ * Accepts File or Base64 and uploads to Cloudinary CDN returning permanent URL
  */
 export async function uploadToCloudinary(file: File | string): Promise<string> {
-  // Simulate network latency of Cloudinary SDK upload
-  await new Promise(res => setTimeout(res, 600));
+  if (!file) return '';
+  if (typeof file === 'string') return file;
 
-  if (typeof file === 'string') {
-    return file; // If already a string URL
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'h0uczsof';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'unsigned_preset');
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const json = await res.json();
+    if (json.secure_url) {
+      return json.secure_url;
+    }
+  } catch (err) {
+    console.error('Cloudinary direct API upload failed, using persistent Base64 fallback:', err);
   }
 
-  // Create local object URL preview for uploaded proof / image
-  return URL.createObjectURL(file);
+  // Convert File to Base64 Data URL so it persists permanently in Supabase across all devices
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(file);
+  });
 }
