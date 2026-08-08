@@ -86,3 +86,28 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Invalid payload' }, { status: 400 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, message: 'Missing product ID' }, { status: 400 });
+    }
+
+    // Delete from memory store
+    const deleted = store.deleteProduct(id);
+
+    // Delete from Supabase DB
+    try {
+      await supabase.from('products').delete().eq('id', id);
+    } catch (e) {
+      console.error('Supabase product delete error:', e);
+    }
+
+    return NextResponse.json({ success: true, deletedId: id });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: 'Delete failed' }, { status: 500 });
+  }
+}

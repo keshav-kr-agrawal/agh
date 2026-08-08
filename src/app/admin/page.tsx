@@ -157,6 +157,24 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleAdminDeleteProduct = async (productId: string) => {
+    if (!confirm(`CAUTION: Are you sure you want to permanently delete product ${productId}?`)) return;
+    try {
+      const res = await fetch(`/api/products?id=${productId}`, {
+        method: 'DELETE'
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert('Product deleted successfully.');
+        refreshAdminData();
+      } else {
+        alert(json.message || 'Failed to delete product.');
+      }
+    } catch {
+      alert('Error deleting product.');
+    }
+  };
+
   const refreshAdminData = async () => {
     setLoading(true);
     try {
@@ -451,7 +469,7 @@ export default function AdminDashboardPage() {
                       <th className="p-4">CP / MRP / SP</th>
                       <th className="p-4">Stock</th>
                       <th className="p-4">Priority Rank</th>
-                      <th className="p-4 text-right">Photo & Edit</th>
+                      <th className="p-4 text-right">Product Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cream-border">
@@ -490,15 +508,35 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
                         <td className="p-4 text-right">
-                          <button
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setIsProductModalOpen(true);
-                            }}
-                            className="px-3 py-1.5 bg-terracotta text-cream font-bold text-xs rounded-xl hover:bg-crimson transition inline-flex items-center gap-1"
-                          >
-                            <Camera className="w-3.5 h-3.5" /> Edit Photos
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            <button
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setIsProductModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 bg-terracotta text-cream font-bold text-xs rounded-xl hover:bg-crimson transition inline-flex items-center gap-1 shadow-xs"
+                              title="Edit product details & pricing"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" /> Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setIsProductModalOpen(true);
+                              }}
+                              className="px-2.5 py-1.5 bg-cream-muted border border-cream-border text-espresso font-bold text-xs rounded-xl hover:bg-cream-border transition inline-flex items-center gap-1 shadow-xs"
+                              title="Upload or camera snap photos"
+                            >
+                              <Camera className="w-3.5 h-3.5 text-gold-dark" /> Photos
+                            </button>
+                            <button
+                              onClick={() => handleAdminDeleteProduct(product.id)}
+                              className="px-2.5 py-1.5 bg-crimson/10 border border-crimson/20 text-crimson font-bold text-xs rounded-xl hover:bg-crimson hover:text-cream transition inline-flex items-center gap-1 shadow-xs"
+                              title="Permanently remove product"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
