@@ -20,7 +20,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, coupon, bannerText, bannerActive, paymentSettings } = body;
+    const { action, coupon, bannerText, bannerActive, paymentSettings, code, cartTotal } = body;
+
+    if (action === 'validate' || code) {
+      const codeToValidate = code || (coupon && coupon.code);
+      const totalToValidate = cartTotal !== undefined ? Number(cartTotal) : 0;
+      const result = store.validateCoupon(codeToValidate, totalToValidate);
+      return NextResponse.json({ success: result.valid, ...result });
+    }
 
     if (action === 'updateBanner') {
       const updatedBanner = store.updateBanner(bannerText, bannerActive);

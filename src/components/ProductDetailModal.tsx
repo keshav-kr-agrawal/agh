@@ -18,6 +18,7 @@ import {
 import { useStorefrontStore } from '@/store/useStorefrontStore';
 import { useCartStore } from '@/store/useCartStore';
 import { getOptimizedImageUrl } from '@/lib/cloudinary';
+import { SvgProductPlaceholder } from './SvgProductPlaceholder';
 
 export const ProductDetailModal: React.FC = () => {
   const { selectedProduct, setSelectedProduct } = useStorefrontStore();
@@ -86,11 +87,15 @@ export const ProductDetailModal: React.FC = () => {
           {/* Multi-Photo Carousel */}
           <div className="p-6 bg-cream-muted border-b md:border-b-0 md:border-r border-cream-border flex flex-col justify-between">
             <div className="relative w-full aspect-square rounded-2xl overflow-hidden border border-cream-border shadow-inner group">
-              <img
-                src={getOptimizedImageUrl(images[activeImageIndex], { width: 800, height: 800 })}
-                alt={selectedProduct.title}
-                className="w-full h-full object-cover"
-              />
+              {images.length > 0 && getOptimizedImageUrl(images[activeImageIndex]) ? (
+                <img
+                  src={getOptimizedImageUrl(images[activeImageIndex], { width: 800, height: 800 })}
+                  alt={selectedProduct.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <SvgProductPlaceholder category={selectedProduct.category} title={selectedProduct.title} />
+              )}
 
               {images.length > 1 && (
                 <>

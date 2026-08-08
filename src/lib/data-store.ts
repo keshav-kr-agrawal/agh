@@ -190,6 +190,17 @@ const initialCoupons: Coupon[] = [
     usageCount: 156,
     expiryDate: '2026-12-31',
     active: true
+  },
+  {
+    id: 'c-4',
+    code: 'WELCOME100',
+    discountType: 'flat',
+    discountValue: 100,
+    minCartValue: 1,
+    usageLimit: 5000,
+    usageCount: 12,
+    expiryDate: '2026-12-31',
+    active: true
   }
 ];
 

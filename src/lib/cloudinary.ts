@@ -14,8 +14,8 @@ export function getOptimizedImageUrl(
   originalUrl: string,
   options: CloudinaryOptions = {}
 ): string {
-  if (!originalUrl) {
-    return 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80';
+  if (!originalUrl || originalUrl.includes('images.unsplash.com')) {
+    return '';
   }
 
   // If base64 data URL, return directly
