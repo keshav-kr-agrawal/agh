@@ -92,8 +92,20 @@ export default function AdminDashboardPage() {
   const [editAmountPaid, setEditAmountPaid] = useState<number>(0);
   const [editAdminNotes, setEditAdminNotes] = useState<string>('');
 
-  // Order Filter Tabs
-  const [orderFilterTab, setOrderFilterTab] = useState<'all' | 'action_required' | 'verified' | 'cancelled'>('all');
+  // Order Filtering, Multi-Metric Sorting & Search State
+  const [orderFilterTab, setOrderFilterTab] = useState<'all' | 'action_required' | 'verified' | 'pay_at_pickup' | 'cancelled'>('all');
+  const [orderSortBy, setOrderSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'profit_desc' | 'profit_asc'>('date_desc');
+  const [orderDateFilter, setOrderDateFilter] = useState<'all' | 'today' | '7days' | 'month'>('all');
+  const [orderSearchQuery, setOrderSearchQuery] = useState('');
+
+  const calculateOrderProfit = (order: Order): number => {
+    const itemCost = (order.items || []).reduce((sum, item) => {
+      const cp = item.product?.costPrice || 0;
+      return sum + (cp * item.quantity);
+    }, 0);
+    const collected = order.amountPaid !== undefined && order.amountPaid > 0 ? order.amountPaid : order.total;
+    return collected - itemCost;
+  };
 
   // POS Walk-In Form State
   const [posProductId, setPosProductId] = useState('');
@@ -493,45 +505,100 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 3: ORDER PAYMENT QUEUE & FINANCIAL ADJUSTMENT */}
+        {/* TAB 3: MASTER ORDER LEDGER & FINANCIAL CONTROL */}
         {activeTab === 'orders' && (
           <div className="space-y-6 animate-fadeIn">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-cream-border pb-4">
               <div>
-                <h2 className="text-xl font-serif font-bold text-espresso">
-                  Payment Verification & Financial Accounting Queue
+                <h2 className="text-xl font-serif font-bold text-espresso flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-terracotta" />
+                  Master Order Ledger & Payment Control
                 </h2>
                 <p className="text-xs text-espresso/60 mt-0.5">
-                  Confirm UPI proofs, manage Pay at Pickup bookings, cancel/delete orders, and record custom discounts.
+                  Filter by Date, Amount, or Profitability. Confirm UPI proofs, manage Pay at Pickup bookings, and adjust financials.
                 </p>
               </div>
 
-              {/* Order Filter Pills */}
-              <div className="flex bg-cream-muted p-1 rounded-xl border border-cream-border text-xs font-bold flex-wrap">
-                <button
-                  onClick={() => setOrderFilterTab('all')}
-                  className={`px-3 py-1.5 rounded-lg transition ${orderFilterTab === 'all' ? 'bg-terracotta text-cream' : 'text-espresso/70'}`}
-                >
-                  All ({orders.length})
-                </button>
-                <button
-                  onClick={() => setOrderFilterTab('action_required')}
-                  className={`px-3 py-1.5 rounded-lg transition ${orderFilterTab === 'action_required' ? 'bg-terracotta text-cream' : 'text-espresso/70'}`}
-                >
-                  Action Required ({orders.filter(o => o.paymentStatus !== 'VERIFIED' && o.paymentStatus !== 'CANCELLED').length})
-                </button>
-                <button
-                  onClick={() => setOrderFilterTab('verified')}
-                  className={`px-3 py-1.5 rounded-lg transition ${orderFilterTab === 'verified' ? 'bg-terracotta text-cream' : 'text-espresso/70'}`}
-                >
-                  Verified ({orders.filter(o => o.paymentStatus === 'VERIFIED').length})
-                </button>
-                <button
-                  onClick={() => setOrderFilterTab('cancelled')}
-                  className={`px-3 py-1.5 rounded-lg transition ${orderFilterTab === 'cancelled' ? 'bg-crimson text-cream' : 'text-espresso/70'}`}
-                >
-                  Cancelled ({orders.filter(o => o.paymentStatus === 'CANCELLED').length})
-                </button>
+              {/* Order Summary Metric Badges */}
+              <div className="flex items-center gap-3 text-xs font-mono">
+                <div className="px-3 py-1.5 bg-cream-muted border border-cream-border rounded-xl">
+                  <span className="text-espresso/60 block text-[10px]">Total Orders:</span>
+                  <span className="font-bold text-espresso">{orders.length}</span>
+                </div>
+                <div className="px-3 py-1.5 bg-emerald-100/60 border border-emerald-300 rounded-xl">
+                  <span className="text-emerald-900/70 block text-[10px]">Total Profit:</span>
+                  <span className="font-bold text-emerald-800">
+                    ₹{orders
+                      .filter(o => o.paymentStatus === 'VERIFIED' || o.paymentStatus === 'PAY_AT_PICKUP')
+                      .reduce((sum, o) => sum + calculateOrderProfit(o), 0)
+                      .toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* MULTI-METRIC FILTER & SORT TOOLBAR */}
+            <div className="bg-cream border border-cream-border p-4 rounded-2xl shadow-xs space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                {/* 1. Search Box */}
+                <div>
+                  <label className="block font-bold text-espresso mb-1">Search Orders</label>
+                  <input
+                    type="text"
+                    value={orderSearchQuery}
+                    onChange={e => setOrderSearchQuery(e.target.value)}
+                    placeholder="Search Order ID, Name, Phone..."
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-medium focus:ring-2 focus:ring-terracotta"
+                  />
+                </div>
+
+                {/* 2. Date Range Filter */}
+                <div>
+                  <label className="block font-bold text-espresso mb-1">📅 Date Filter</label>
+                  <select
+                    value={orderDateFilter}
+                    onChange={e => setOrderDateFilter(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-semibold"
+                  >
+                    <option value="all">All Dates</option>
+                    <option value="today">Today Only</option>
+                    <option value="7days">Last 7 Days</option>
+                    <option value="month">This Month</option>
+                  </select>
+                </div>
+
+                {/* 3. Multi-Metric Sort Dropdown */}
+                <div>
+                  <label className="block font-bold text-espresso mb-1">📊 Sort Orders By</label>
+                  <select
+                    value={orderSortBy}
+                    onChange={e => setOrderSortBy(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-bold text-terracotta"
+                  >
+                    <option value="date_desc">📅 Date: Newest First</option>
+                    <option value="date_asc">📅 Date: Oldest First</option>
+                    <option value="amount_desc">💰 Amount: Highest Total Bill</option>
+                    <option value="amount_asc">💰 Amount: Lowest Total Bill</option>
+                    <option value="profit_desc">📈 Profit: Highest Net Profit</option>
+                    <option value="profit_asc">📈 Profit: Lowest Net Profit</option>
+                  </select>
+                </div>
+
+                {/* 4. Status Filter Tabs */}
+                <div>
+                  <label className="block font-bold text-espresso mb-1">Payment Status Filter</label>
+                  <select
+                    value={orderFilterTab}
+                    onChange={e => setOrderFilterTab(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-cream-muted border border-cream-border rounded-xl font-semibold"
+                  >
+                    <option value="all">All Statuses ({orders.length})</option>
+                    <option value="action_required">Action Required ({orders.filter(o => o.paymentStatus !== 'VERIFIED' && o.paymentStatus !== 'CANCELLED').length})</option>
+                    <option value="verified">Verified ({orders.filter(o => o.paymentStatus === 'VERIFIED').length})</option>
+                    <option value="pay_at_pickup">Pay at Pickup ({orders.filter(o => o.paymentStatus === 'PAY_AT_PICKUP').length})</option>
+                    <option value="cancelled">Cancelled ({orders.filter(o => o.paymentStatus === 'CANCELLED').length})</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -543,22 +610,76 @@ export default function AdminDashboardPage() {
                       <th className="p-4">Order ID & Date</th>
                       <th className="p-4">Customer Info</th>
                       <th className="p-4">Purchased Items</th>
-                      <th className="p-4">Payment Method</th>
                       <th className="p-4">Bill Total / Collected</th>
+                      <th className="p-4">Calculated Profit</th>
                       <th className="p-4">Payment Status</th>
-                      <th className="p-4 text-right">Financial & Order Controls</th>
+                      <th className="p-4 text-right">Financial Controls</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cream-border">
                     {orders
                       .filter(order => {
-                        if (orderFilterTab === 'action_required') return order.paymentStatus !== 'VERIFIED' && order.paymentStatus !== 'CANCELLED';
-                        if (orderFilterTab === 'verified') return order.paymentStatus === 'VERIFIED';
-                        if (orderFilterTab === 'cancelled') return order.paymentStatus === 'CANCELLED';
+                        // 1. Status Filter
+                        if (orderFilterTab === 'action_required') {
+                          if (order.paymentStatus === 'VERIFIED' || order.paymentStatus === 'CANCELLED') return false;
+                        } else if (orderFilterTab === 'verified') {
+                          if (order.paymentStatus !== 'VERIFIED') return false;
+                        } else if (orderFilterTab === 'pay_at_pickup') {
+                          if (order.paymentStatus !== 'PAY_AT_PICKUP') return false;
+                        } else if (orderFilterTab === 'cancelled') {
+                          if (order.paymentStatus !== 'CANCELLED') return false;
+                        }
+
+                        // 2. Date Filter
+                        const orderDate = new Date(order.createdAt);
+                        const now = new Date();
+                        if (orderDateFilter === 'today') {
+                          if (orderDate.toDateString() !== now.toDateString()) return false;
+                        } else if (orderDateFilter === '7days') {
+                          const diffTime = Math.abs(now.getTime() - orderDate.getTime());
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          if (diffDays > 7) return false;
+                        } else if (orderDateFilter === 'month') {
+                          if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false;
+                        }
+
+                        // 3. Search Query
+                        if (orderSearchQuery) {
+                          const q = orderSearchQuery.toLowerCase();
+                          const matchId = order.id.toLowerCase().includes(q);
+                          const matchName = order.customerName.toLowerCase().includes(q);
+                          const matchPhone = order.customerPhone.toLowerCase().includes(q);
+                          const matchItems = (order.items || []).some(i => i.product.title.toLowerCase().includes(q));
+                          if (!matchId && !matchName && !matchPhone && !matchItems) return false;
+                        }
+
                         return true;
+                      })
+                      .sort((a, b) => {
+                        if (orderSortBy === 'date_desc') {
+                          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                        }
+                        if (orderSortBy === 'date_asc') {
+                          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                        }
+                        if (orderSortBy === 'amount_desc') {
+                          return (b.amountPaid || b.total) - (a.amountPaid || a.total);
+                        }
+                        if (orderSortBy === 'amount_asc') {
+                          return (a.amountPaid || a.total) - (b.amountPaid || b.total);
+                        }
+                        if (orderSortBy === 'profit_desc') {
+                          return calculateOrderProfit(b) - calculateOrderProfit(a);
+                        }
+                        if (orderSortBy === 'profit_asc') {
+                          return calculateOrderProfit(a) - calculateOrderProfit(b);
+                        }
+                        return 0;
                       })
                       .map(order => {
                         const amountPaid = order.amountPaid !== undefined ? order.amountPaid : order.total;
+                        const orderProfit = calculateOrderProfit(order);
+                        const marginPercent = amountPaid > 0 ? Math.round((orderProfit / amountPaid) * 100) : 0;
                         const hasAdminDiscount = order.adminDiscountAdjustment && order.adminDiscountAdjustment > 0;
 
                         return (
@@ -572,26 +693,25 @@ export default function AdminDashboardPage() {
                                 </span>
                               )}
                             </td>
+
                             <td className="p-4">
                               <div className="font-bold text-espresso">{order.customerName}</div>
                               <div className="text-[10px] text-espresso/60 font-mono">{order.customerPhone}</div>
+                              <span className="text-[10px] text-terracotta capitalize font-semibold block mt-0.5">
+                                {order.fulfillmentType === 'handpicked' ? 'Store Pickup' : 'Parcel Delivery'}
+                              </span>
                             </td>
+
                             <td className="p-4">
                               <div className="space-y-1">
-                                {order.items.map(item => (
-                                  <div key={item.product.id} className="text-espresso text-[11px]">
+                                {(order.items || []).map((item, idx) => (
+                                  <div key={idx} className="text-espresso text-[11px]">
                                     • {item.product.title} <span className="font-mono font-bold text-terracotta">x{item.quantity}</span>
                                   </div>
                                 ))}
                               </div>
                             </td>
-                            <td className="p-4 font-semibold text-espresso uppercase">
-                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                order.paymentMethod === 'pay_at_pickup' ? 'bg-crimson/15 text-crimson' : 'bg-terracotta/15 text-terracotta'
-                              }`}>
-                                {order.paymentMethod === 'pay_at_pickup' ? 'Store Pickup Pay' : 'Online UPI'}
-                              </span>
-                            </td>
+
                             <td className="p-4 font-mono">
                               <div className="font-bold text-espresso">Bill: ₹{order.total}</div>
                               <div className="text-emerald-800 font-extrabold">Collected: ₹{amountPaid}</div>
@@ -601,6 +721,17 @@ export default function AdminDashboardPage() {
                                 </span>
                               )}
                             </td>
+
+                            {/* CALCULATED PROFIT COLUMN */}
+                            <td className="p-4 font-mono">
+                              <div className="font-extrabold text-emerald-800 text-sm">₹{orderProfit}</div>
+                              <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                marginPercent >= 40 ? 'bg-emerald-100 text-emerald-800' : 'bg-gold/20 text-espresso'
+                              }`}>
+                                {marginPercent}% Margin
+                              </span>
+                            </td>
+
                             <td className="p-4">
                               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                                 order.paymentStatus === 'VERIFIED'
@@ -616,6 +747,7 @@ export default function AdminDashboardPage() {
                                 {order.paymentStatus}
                               </span>
                             </td>
+
                             <td className="p-4 text-right space-x-1.5">
                               <button
                                 onClick={() => {
@@ -634,7 +766,7 @@ export default function AdminDashboardPage() {
                                 href={`/invoice/${order.id}`}
                                 target="_blank"
                                 className="p-1.5 text-espresso/70 hover:text-espresso inline-block border border-cream-border rounded-lg"
-                                title="Print Tax Invoice PDF"
+                                title="Print Invoice PDF"
                               >
                                 <Printer className="w-3.5 h-3.5" />
                               </Link>
@@ -651,8 +783,8 @@ export default function AdminDashboardPage() {
 
                               <button
                                 onClick={() => handleAdminDeleteOrder(order.id)}
-                                className="p-1.5 text-crimson hover:bg-crimson hover:text-cream border border-crimson/20 rounded-lg transition inline-block"
-                                title="Permanently Delete Order Record"
+                                className="p-1.5 text-crimson/70 hover:text-crimson inline-block border border-crimson/20 rounded-lg hover:bg-crimson/10"
+                                title="Permanently Delete Order"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -666,6 +798,8 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         )}
+
+
 
         {/* TAB 4: MANUAL OFFLINE POS ORDER CREATOR */}
         {activeTab === 'pos' && (
