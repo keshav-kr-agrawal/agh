@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProductCard } from './ProductCard';
 import { Product } from '@/types';
 import { useStorefrontStore } from '@/store/useStorefrontStore';
@@ -11,10 +11,7 @@ import {
   Store, 
   Truck, 
   RotateCcw, 
-  Search, 
-  ChevronLeft,
-  ChevronRight,
-  Flame
+  Search
 } from 'lucide-react';
 
 export const MerchandisingGrid: React.FC = () => {
@@ -31,7 +28,6 @@ export const MerchandisingGrid: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchCatalog() {
@@ -67,13 +63,6 @@ export const MerchandisingGrid: React.FC = () => {
       window.removeEventListener('focus', handleFocus);
     };
   }, [selectedCategory, searchQuery, fulfillmentType, inStockOnly, priceRange]);
-
-  const scrollSideCarousel = (direction: 'left' | 'right') => {
-    if (carouselRef.current) {
-      const scrollAmount = direction === 'left' ? -320 : 320;
-      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
@@ -133,51 +122,7 @@ export const MerchandisingGrid: React.FC = () => {
         </div>
       </div>
 
-      {/* HORIZONTAL SIDE-SCROLLING PRODUCT SHOWCASE */}
-      {products.length > 0 && (
-        <div className="space-y-4 bg-cream-muted border border-cream-border rounded-3xl p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-terracotta flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-gold-dark" /> Horizontal Showcase
-              </span>
-              <h2 className="text-xl font-serif font-bold text-espresso">
-                Featured Bestsellers & New Arrivals
-              </h2>
-            </div>
 
-            {/* Carousel Side Controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => scrollSideCarousel('left')}
-                className="p-2.5 rounded-full bg-cream border border-cream-border text-espresso hover:bg-terracotta hover:text-cream transition shadow-xs"
-                title="Scroll Left"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => scrollSideCarousel('right')}
-                className="p-2.5 rounded-full bg-cream border border-cream-border text-espresso hover:bg-terracotta hover:text-cream transition shadow-xs"
-                title="Scroll Right"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Side Scrollable Item Row */}
-          <div
-            ref={carouselRef}
-            className="flex items-stretch gap-4 overflow-x-auto snap-x snap-mandatory pb-3 pt-1 scrollbar-thin scrollbar-thumb-terracotta scrollbar-track-cream-muted scroll-smooth"
-          >
-            {products.map(product => (
-              <div key={`side-${product.id}`} className="min-w-[260px] sm:min-w-[280px] max-w-[280px] snap-start shrink-0">
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Filter & Controls Toolbar */}
       <div className="bg-cream-muted border border-cream-border rounded-2xl p-4 shadow-sm space-y-4">
