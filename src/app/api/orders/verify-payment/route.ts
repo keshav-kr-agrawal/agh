@@ -25,7 +25,10 @@ export async function POST(request: NextRequest) {
       await supabase.from('orders').update({
         payment_status: targetStatus,
         amount_paid: amountPaid !== undefined ? amountPaid : updatedOrder.amountPaid,
-        admin_notes: adminNotes !== undefined ? adminNotes : updatedOrder.adminNotes
+        admin_discount_adjustment: updatedOrder.adminDiscountAdjustment || 0,
+        order_stage: updatedOrder.orderStage,
+        admin_notes: adminNotes !== undefined ? adminNotes : updatedOrder.adminNotes,
+        updated_at: updatedOrder.updatedAt
       }).eq('id', orderId);
     } catch (e) {
       console.error('Supabase DB verify payment error:', e);

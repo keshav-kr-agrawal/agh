@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
     searchQuery, 
     setSearchQuery 
   } = useStorefrontStore();
-  const { user, isAdmin, logout } = useAuthStore();
+  const { user, isAdmin, logout, initializeAuth } = useAuthStore();
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -66,6 +66,7 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
+    initializeAuth();
     fetchBanner();
 
     const unsubscribe = supabaseRealtime.subscribe(event => {
@@ -144,12 +145,12 @@ export const Navbar: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
-            {/* Brand Logo Section (Logo Image Only) */}
+            {/* Brand Logo Section */}
             <Link href="/" className="flex items-center shrink-0 group">
               <img
                 src="/agh.png"
                 alt="Anita Gift House"
-                className="h-14 w-auto object-contain rounded-xl p-0.5 group-hover:scale-105 transition duration-300"
+                className="h-10 sm:h-14 w-auto object-contain rounded-xl p-0.5 group-hover:scale-105 transition duration-300"
               />
             </Link>
 
@@ -198,7 +199,7 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Header Action Controls */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {/* Fulfillment Toggle */}
               <div className="hidden lg:flex items-center bg-cream-muted border border-cream-border rounded-full p-1 text-xs">
                 <button
@@ -225,46 +226,46 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
 
-              {/* Customer Auth Controls (Admin link strictly hidden from storefront header) */}
+              {/* Customer Auth Controls */}
               {user && !isAdmin ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <Link
                     href="/account"
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold bg-cream-muted border border-cream-border text-espresso hover:bg-cream-border transition shadow-xs"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-bold bg-cream-muted border border-cream-border text-espresso hover:bg-cream-border transition shadow-xs"
                   >
                     <User className="w-4 h-4 text-terracotta" />
-                    <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                    <span className="text-[11px] sm:text-xs">{user.name.split(' ')[0]}</span>
                   </Link>
                   <button
                     onClick={() => {
                       logout();
                       router.push('/login');
                     }}
-                    className="p-2 rounded-full bg-cream-muted border border-cream-border text-espresso/70 hover:text-crimson transition"
+                    className="p-1.5 sm:p-2 rounded-full bg-cream-muted border border-cream-border text-espresso/70 hover:text-crimson transition"
                     title="Log Out Session"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </button>
                 </div>
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-terracotta text-cream hover:bg-crimson transition shadow-sm"
+                  className="flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-terracotta text-cream hover:bg-crimson transition shadow-sm shrink-0"
                 >
-                  <LogIn className="w-4 h-4 text-gold" />
-                  <span>Login / Sign Up</span>
+                  <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold shrink-0" />
+                  <span>Login</span>
                 </Link>
               )}
 
               {/* Cart Drawer Trigger */}
               <button
                 onClick={openCart}
-                className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-terracotta to-crimson text-cream font-medium text-sm rounded-full shadow-md hover:shadow-lg hover:brightness-110 transition active:scale-95"
+                className="relative flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-terracotta to-crimson text-cream font-medium text-xs sm:text-sm rounded-full shadow-md hover:shadow-lg hover:brightness-110 transition active:scale-95 shrink-0"
               >
-                <ShoppingBag className="w-4 h-4 text-gold" />
+                <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold shrink-0" />
                 <span className="hidden sm:inline">Cart</span>
                 {itemCount > 0 && (
-                  <span className="ml-1 bg-gold text-espresso text-xs font-extrabold px-2 py-0.5 rounded-full shadow-inner">
+                  <span className="bg-gold text-espresso text-[10px] sm:text-xs font-extrabold px-1.5 py-0.2 rounded-full shadow-inner">
                     {itemCount}
                   </span>
                 )}
@@ -273,22 +274,22 @@ export const Navbar: React.FC = () => {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 text-espresso hover:text-terracotta"
+                className="md:hidden p-1.5 text-espresso hover:text-terracotta shrink-0"
               >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
             </div>
           </div>
 
-          {/* Category Pills Navigation */}
-          <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-none border-t border-cream-border/60">
+          {/* Category Pills Navigation - Edge to Edge Scroll on Mobile */}
+          <div className="flex items-center gap-1.5 sm:gap-2 py-2.5 overflow-x-auto scrollbar-none border-t border-cream-border/60 -mx-4 px-4 sm:mx-0 sm:px-0">
             {categories.map(cat => {
               const isActive = selectedCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                  className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0 ${
                     isActive
                       ? 'bg-terracotta text-cream shadow-sm font-semibold'
                       : 'bg-cream-muted text-espresso/80 border border-cream-border hover:border-terracotta/40 hover:text-terracotta'
@@ -353,9 +354,6 @@ export const Navbar: React.FC = () => {
           </div>
         )}
       </header>
-
-      {/* Gated Add to Cart Requirement Modal */}
-      <AuthRequiredModal />
     </>
   );
 };

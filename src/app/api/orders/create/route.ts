@@ -76,6 +76,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 1. Triple Stock Validation Check (Payload, DataStore, Supabase DB)
+    for (const item of items) {
+      const requestedQty = Number(item.quantity || 1);
+      
+      // Check payload stock
+      const payloadStock = Number(item.product?.stock !== undefined ? item.product.stock : 0);
+      if (payloadStock <= 0 || payloadStock < requestedQty) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            message: `Cannot place order: Item "${item.product?.title || 'Selected Product'}" is OUT OF STOCK! Available: ${payloadStock}, Requested: ${requestedQty}.` 
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check store memory stock
+      const storeProd = store.getProductById(item.product?.id);
+      if (storeProd) {
+        const storeStock = Number(storeProd.stock !== undefined ? storeProd.stock : 0);
+        if (storeStock <= 0 || storeStock < requestedQty) {
+          return NextResponse.json(
+            { 
+              success: false, 
+              message: `Cannot place order: Item "${storeProd.title}" is OUT OF STOCK! Available: ${storeStock}, Requested: ${requestedQty}.` 
+            },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Check Supabase DB stock
+      const prodId = item.product?.id;
+      if (prodId) {
+        try {
+          const { data: supaProd } = await supabase.from('products').select('title, stock').eq('id', prodId).single();
+          if (supaProd) {
+            const liveStock = Number(supaProd.stock !== undefined ? supaProd.stock : 0);
+            if (liveStock <= 0 || liveStock < requestedQty) {
+              return NextResponse.json(
+                { 
+                  success: false, 
+                  message: `Cannot place order: Item "${supaProd.title || item.product.title}" is OUT OF STOCK! Available: ${liveStock}, Requested: ${requestedQty}.` 
+                },
+                { status: 400 }
+              );
+            }
+          }
+        } catch (stockErr) {}
+      }
+    }
+
     const order = store.createOrder({
       customerName,
       customerPhone,
@@ -93,32 +145,47 @@ export async function POST(request: NextRequest) {
       paymentProofUrl: paymentProofUrl || ''
     });
 
-    // Sync to Supabase PostgreSQL DB
-    try {
-      await supabase.from('orders').insert([{
-        id: order.id,
-        customer_name: order.customerName,
-        customer_phone: order.customerPhone,
-        customer_email: order.customerEmail,
-        address: order.address,
-        pincode: order.pincode,
-        fulfillment_type: order.fulfillmentType,
-        payment_method: order.paymentMethod,
-        items: order.items,
-        subtotal: order.subtotal,
-        shipping_fee: order.shippingFee,
-        discount: order.discount,
-        admin_discount_adjustment: order.adminDiscountAdjustment || 0,
-        coupon_code: order.couponCode,
-        total: order.total,
-        amount_paid: order.amountPaid,
-        payment_status: order.paymentStatus,
-        order_stage: order.orderStage,
-        payment_proof_url: order.paymentProofUrl
-      }]);
-    } catch (e) {
-      console.error('Supabase DB order insert error:', e);
-    }
+    // 2. Synchronous/Async Inventory Deduction & Supabase DB Insert
+    (async () => {
+      try {
+        await supabase.from('orders').insert([{
+          id: order.id,
+          customer_name: order.customerName,
+          customer_phone: order.customerPhone,
+          customer_email: order.customerEmail,
+          address: order.address,
+          pincode: order.pincode,
+          fulfillment_type: order.fulfillmentType,
+          payment_method: order.paymentMethod,
+          items: order.items,
+          subtotal: order.subtotal,
+          shipping_fee: order.shippingFee,
+          discount: order.discount,
+          admin_discount_adjustment: order.adminDiscountAdjustment || 0,
+          coupon_code: order.couponCode,
+          total: order.total,
+          amount_paid: order.amountPaid,
+          payment_status: order.paymentStatus,
+          order_stage: order.orderStage,
+          payment_proof_url: order.paymentProofUrl
+        }]);
+
+        // Deduct inventory stock in Supabase PostgreSQL DB
+        for (const item of items) {
+          const prodId = item.product?.id;
+          if (prodId) {
+            const { data: supaProd } = await supabase.from('products').select('stock').eq('id', prodId).single();
+            if (supaProd) {
+              const currentStock = Number(supaProd.stock || 0);
+              const newStock = Math.max(0, currentStock - item.quantity);
+              await supabase.from('products').update({ stock: newStock }).eq('id', prodId);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Supabase DB order insert / stock update error:', e);
+      }
+    })();
 
     const upiPayload = `upi://pay?pa=9199272836@okbizaxis&pn=Anita%20Gift%20House&am=${order.total}&tr=${order.id}&tn=Order%20${order.id}`;
 

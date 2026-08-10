@@ -36,7 +36,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { isAdmin, updateAdminPin } = useAuthStore();
+  const { isAdmin, updateAdminPin, initializeAuth } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'inventory' | 'orders' | 'pos'>('analytics');
   
@@ -50,10 +50,11 @@ export default function AdminDashboardPage() {
   const [showConfirmPin, setShowConfirmPin] = useState(false);
 
   useEffect(() => {
+    initializeAuth();
     if (!isAdmin) {
       router.push('/admin/login');
     }
-  }, [isAdmin, router]);
+  }, [isAdmin, router, initializeAuth]);
 
   const handleChangeAdminPassword = (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,6 +243,10 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     refreshAdminData();
+    const timer = setInterval(() => {
+      refreshAdminData();
+    }, 15000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -321,6 +326,14 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    const availableStock = Number(prod.stock !== undefined ? prod.stock : 0);
+    const requestedQty = Number(posQty || 1);
+
+    if (availableStock <= 0 || availableStock < requestedQty) {
+      alert(`⚠️ Cannot create POS order: "${prod.title}" is OUT OF STOCK! Available stock: ${availableStock}, requested: ${requestedQty}. Please restock this item in Catalogue first.`);
+      return;
+    }
+
     try {
       const subtotal = prod.price * posQty;
       const res = await fetch('/api/orders/create', {
@@ -340,10 +353,12 @@ export default function AdminDashboardPage() {
       });
       const json = await res.json();
       if (json.success) {
-        alert(`POS Walk-In Order #${json.data.id} created! Stock updated.`);
+        alert(`🎉 POS Walk-In Order #${json.data.id} created! Live stock updated.`);
         setPosProductId('');
         setPosQty(1);
         refreshAdminData();
+      } else {
+        alert(`❌ Order Creation Failed: ${json.message || 'Out of stock or invalid data'}`);
       }
     } catch {
       alert('Error creating POS order');
@@ -366,18 +381,18 @@ export default function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-cream-muted p-1 rounded-2xl border border-cream-border text-xs font-bold flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-cream-muted p-1 rounded-2xl border border-cream-border text-[11px] sm:text-xs font-bold flex-wrap">
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition ${
                 activeTab === 'analytics' ? 'bg-terracotta text-cream shadow-sm' : 'text-espresso/70 hover:text-espresso'
               }`}
             >
-              📊 Profit Analytics
+              📊 Analytics
             </button>
             <button
               onClick={() => setActiveTab('inventory')}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition ${
                 activeTab === 'inventory' ? 'bg-terracotta text-cream shadow-sm' : 'text-espresso/70 hover:text-espresso'
               }`}
             >
@@ -385,32 +400,40 @@ export default function AdminDashboardPage() {
             </button>
             <button
               onClick={() => setActiveTab('orders')}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition ${
                 activeTab === 'orders' ? 'bg-terracotta text-cream shadow-sm' : 'text-espresso/70 hover:text-espresso'
               }`}
             >
-              🧾 Payment Queue & Discounts
+              🧾 Payment Queue
             </button>
             <button
               onClick={() => setActiveTab('pos')}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl transition ${
                 activeTab === 'pos' ? 'bg-crimson text-cream shadow-sm' : 'text-espresso/70 hover:text-espresso'
               }`}
             >
-              🏪 Walk-In POS Order
+              🏪 Walk-In POS
             </button>
             <button
               onClick={() => setIsPasswordModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-gold/20 text-espresso font-bold border border-gold/40 hover:bg-gold transition flex items-center gap-1"
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gold/20 text-espresso font-bold border border-gold/40 hover:bg-gold transition flex items-center gap-1"
             >
-              🔐 Change Password
+              🔐 Password
+            </button>
+            <button
+              onClick={refreshAdminData}
+              disabled={loading}
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-terracotta/10 text-terracotta font-bold border border-terracotta/20 hover:bg-terracotta hover:text-cream transition flex items-center gap-1"
+              title="Refresh live orders, financial metrics, and products"
+            >
+              {loading ? '⏳ Loading...' : '🔄 Refresh'}
             </button>
             <button
               onClick={handlePurgeAllOrders}
-              className="px-3.5 py-2 rounded-xl bg-crimson/10 text-crimson font-bold border border-crimson/20 hover:bg-crimson hover:text-cream transition flex items-center gap-1"
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-crimson/10 text-crimson font-bold border border-crimson/20 hover:bg-crimson hover:text-cream transition flex items-center gap-1"
               title="Purge test sales orders and reset revenue metrics to ₹0"
             >
-              🧹 Reset Sales Data (₹0)
+              🧹 Reset Data
             </button>
           </div>
         </div>
@@ -517,8 +540,8 @@ export default function AdminDashboardPage() {
 
             {/* Inventory Table with Clickable Photos */}
             <div className="bg-cream border border-cream-border rounded-3xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="overflow-x-auto scrollbar-thin">
+                <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="bg-cream-muted border-b border-cream-border text-espresso/70 font-bold uppercase tracking-wider">
                       <th className="p-4">Product Details & Photo</th>
@@ -702,8 +725,8 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="bg-cream border border-cream-border rounded-3xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="overflow-x-auto scrollbar-thin">
+                <table className="w-full text-left border-collapse text-xs min-w-[700px]">
                   <thead>
                     <tr className="bg-cream-muted border-b border-cream-border text-espresso/70 font-bold uppercase tracking-wider">
                       <th className="p-4">Order ID & Date</th>
@@ -924,8 +947,8 @@ export default function AdminDashboardPage() {
                 >
                   <option value="">-- Choose Product --</option>
                   {products.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.title} (Stock: {p.stock}) - ₹{p.price}
+                    <option key={p.id} value={p.id} disabled={p.stock <= 0} className={p.stock <= 0 ? 'text-crimson font-bold' : ''}>
+                      {p.stock <= 0 ? `🚫 OUT OF STOCK - ${p.title} (Stock: 0)` : `${p.title} (Stock: ${p.stock}) - ₹${p.price}`}
                     </option>
                   ))}
                 </select>

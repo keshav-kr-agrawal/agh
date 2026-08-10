@@ -182,14 +182,16 @@ export const MerchandisingGrid: React.FC = () => {
       ) : products.length === 0 ? (
         <div className="text-center py-20 bg-cream-muted border border-cream-border rounded-3xl space-y-3">
           <Search className="w-12 h-12 text-espresso/30 mx-auto" />
-          <h3 className="font-serif font-bold text-lg text-espresso">No items found matching criteria</h3>
-          <p className="text-xs text-espresso/60 max-w-sm mx-auto">Try resetting filters or adjusting search keyword terms.</p>
-          <button
-            onClick={resetFilters}
-            className="px-6 py-2.5 bg-terracotta text-cream text-xs font-bold rounded-full shadow hover:bg-crimson transition"
+          <h3 className="font-serif font-bold text-lg text-espresso">No Products Listed Yet</h3>
+          <p className="text-xs text-espresso/60 max-w-md mx-auto">
+            Store inventory is clean and ready. Add your real products with photos from the Admin Control Center!
+          </p>
+          <a
+            href="/admin"
+            className="inline-block px-6 py-2.5 bg-terracotta text-cream text-xs font-bold rounded-full shadow hover:bg-crimson transition"
           >
-            Show All Products
-          </button>
+            + Add First Product in Admin
+          </a>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

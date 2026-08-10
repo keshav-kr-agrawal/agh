@@ -5,6 +5,7 @@ import { useAuthStore } from './useAuthStore';
 interface CartState {
   cart: CartItem[];
   wishlist: Product[];
+  pendingProduct: Product | null;
   fulfillmentType: FulfillmentType;
   isCartOpen: boolean;
   isAuthRequiredModalOpen: boolean;
@@ -22,6 +23,7 @@ interface CartState {
   toggleCart: () => void;
   openAuthRequiredModal: () => void;
   closeAuthRequiredModal: () => void;
+  setPendingProduct: (product: Product | null) => void;
 
   // Calculators
   getSubtotal: () => number;
@@ -34,17 +36,23 @@ interface CartState {
 export const useCartStore = create<CartState>((set, get) => ({
   cart: [],
   wishlist: [],
+  pendingProduct: null,
   fulfillmentType: 'handpicked',
   isCartOpen: false,
   isAuthRequiredModalOpen: false,
 
   openAuthRequiredModal: () => set({ isAuthRequiredModalOpen: true }),
   closeAuthRequiredModal: () => set({ isAuthRequiredModalOpen: false }),
+  setPendingProduct: product => set({ pendingProduct: product }),
 
   addToCart: (product, quantity = 1) => {
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
     if (!user) {
-      set({ isAuthRequiredModalOpen: true });
+      useAuthStore.getState().initializeAuth();
+      user = useAuthStore.getState().user;
+    }
+    if (!user) {
+      set({ pendingProduct: product, isAuthRequiredModalOpen: true });
       return false;
     }
 
@@ -95,7 +103,11 @@ export const useCartStore = create<CartState>((set, get) => ({
   setFulfillmentType: type => set({ fulfillmentType: type }),
 
   toggleWishlist: product => {
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      useAuthStore.getState().initializeAuth();
+      user = useAuthStore.getState().user;
+    }
     if (!user) {
       set({ isAuthRequiredModalOpen: true });
       return;
@@ -117,7 +129,11 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   clearCart: () => set({ cart: [] }),
   openCart: () => {
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      useAuthStore.getState().initializeAuth();
+      user = useAuthStore.getState().user;
+    }
     if (!user) {
       set({ isAuthRequiredModalOpen: true });
       return;
@@ -126,7 +142,11 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
   closeCart: () => set({ isCartOpen: false }),
   toggleCart: () => {
-    const user = useAuthStore.getState().user;
+    let user = useAuthStore.getState().user;
+    if (!user) {
+      useAuthStore.getState().initializeAuth();
+      user = useAuthStore.getState().user;
+    }
     if (!user) {
       set({ isAuthRequiredModalOpen: true });
       return;

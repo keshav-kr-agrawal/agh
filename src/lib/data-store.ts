@@ -1,200 +1,19 @@
 import { Product, Order, FinancialMetrics, Coupon, StoreBanner, MonthlyFinancialSummary, Category, OverheadExpense, PaymentStatus, PaymentSettings } from '@/types';
 import { supabase, supabaseRealtime } from './supabase';
 
-// Initial Seed Products
-const initialProducts: Product[] = [
-  {
-    id: 'prod-1',
-    title: 'Royal Kundan & Zardosi Rakhi Hamper',
-    description: 'Exquisite handcrafted Royal Kundan Rakhi set accompanied by organic Roli Chawal, artisan roasted dry fruits (Almonds & Cashews 200g), and gold foil greeting card.',
-    category: 'Rakhi',
-    keywords: ['rakhi', 'kundan', 'zardosi', 'dry fruits', 'festival', 'hamper', 'royal'],
-    costPrice: 450,
-    mrp: 1499,
-    price: 999,
-    stock: 8,
-    priorityScore: 98,
-    urgencyFlag: true,
-    isHandpickedFeatured: true,
-    images: [],
-    specs: {
-      'Set Includes': '1 Kundan Rakhi, 1 Lumba Rakhi, 200g Nuts',
-      'Packaging': 'Handmade Velvet Gift Box',
-      'Material': 'Gold Plated Zari & Precious Kundan Stones'
-    },
-    occasion: 'Raksha Bandhan',
-    createdAt: '2026-08-01T10:00:00Z'
-  },
-  {
-    id: 'prod-2',
-    title: 'Grand Heritage Brass Diya & Pooja Box',
-    description: 'Pure brass peacock-engraved oil lamps with brass bell, organic camphor, sandalwood paste, and handcrafted brass thali.',
-    category: 'Handpicked',
-    keywords: ['brass', 'pooja', 'diya', 'diwali', 'festive', 'handcrafted', 'puja thali'],
-    costPrice: 800,
-    mrp: 2999,
-    price: 1899,
-    stock: 3,
-    priorityScore: 95,
-    urgencyFlag: true,
-    isHandpickedFeatured: true,
-    images: [],
-    specs: {
-      'Material': '100% Solid Brass',
-      'Weight': '1.2 kg',
-      'Craft': 'Moradabad Traditional Metalwork'
-    },
-    occasion: 'Festive / Housewarming',
-    createdAt: '2026-08-02T11:30:00Z'
-  },
-  {
-    id: 'prod-3',
-    title: 'Luxury Saffron & Dark Chocolate Artisan Gift Trunk',
-    description: 'Solid wooden treasure trunk filled with Kashmir Saffron (1g), 70% Dark Belgian Chocolates (12 pcs), Rose Infused Honey, and Brass Spoon.',
-    category: 'Hampers',
-    keywords: ['chocolate', 'hamper', 'saffron', 'gift box', 'luxury', 'wooden trunk'],
-    costPrice: 1200,
-    mrp: 3999,
-    price: 2799,
-    stock: 4,
-    priorityScore: 92,
-    urgencyFlag: true,
-    isHandpickedFeatured: true,
-    images: [],
-    specs: {
-      'Shelf Life': '6 Months',
-      'Trunk Material': 'Reclaimed Teak Wood with Brass Latch',
-      'Origin': 'Saffron from Pampore, Kashmir'
-    },
-    occasion: 'Anniversary / Corporate',
-    createdAt: '2026-08-03T14:15:00Z'
-  },
-  {
-    id: 'prod-4',
-    title: 'Interactive Wooden Educational Steam Railway Train Set',
-    description: 'Child-safe non-toxic natural beechwood railway set with 45 tracks, magnetic engines, toll bridge, and interactive sound station.',
-    category: 'Toys',
-    keywords: ['toys', 'wooden toy', 'kids', 'steam train', 'educational', 'montessori'],
-    costPrice: 650,
-    mrp: 2499,
-    price: 1499,
-    stock: 12,
-    priorityScore: 88,
-    urgencyFlag: false,
-    isHandpickedFeatured: false,
-    images: [],
-    specs: {
-      'Age Group': '3 to 10 Years',
-      'Material': 'Sustainable Beechwood & Water-Based Colors',
-      'Safety Certification': 'BIS & EN71 Certified'
-    },
-    occasion: 'Birthday / Kids Gift',
-    createdAt: '2026-08-04T09:20:00Z'
-  },
-  {
-    id: 'prod-5',
-    title: 'Customized Engraved Wooden Keepsake Desk Clock',
-    description: 'Personalized solid mahogany desk clock with quartz movement, photo slot, and laser-engraved customized family name/message.',
-    category: 'Gifts',
-    keywords: ['customized', 'personalized', 'clock', 'wooden clock', 'desk decor', 'anniversary'],
-    costPrice: 380,
-    mrp: 1499,
-    price: 899,
-    stock: 15,
-    priorityScore: 85,
-    urgencyFlag: false,
-    isHandpickedFeatured: true,
-    images: [],
-    specs: {
-      'Battery': '1x AA Battery included',
-      'Dimensions': '8 x 6 x 2.5 inches',
-      'Customization': 'Laser Engraved Text'
-    },
-    occasion: 'Birthday / Retirement',
-    createdAt: '2026-08-04T16:00:00Z'
-  },
-  {
-    id: 'prod-6',
-    title: 'Threaded Silver Resham Lumba-Rakhi Duo Set',
-    description: 'Elegant sterling silver plated Resham thread Rakhi for brother and matching embellished Lumba for Bhabhi with organic Kumkum Roli kit.',
-    category: 'Rakhi',
-    keywords: ['rakhi', 'lumba', 'bhabhi rakhi', 'silver rakhi', 'pair rakhi', 'brother bhabhi'],
-    costPrice: 220,
-    mrp: 999,
-    price: 599,
-    stock: 2,
-    priorityScore: 90,
-    urgencyFlag: true,
-    isHandpickedFeatured: false,
-    images: [],
-    specs: {
-      'Material': 'Pure Resham Silk Thread & Silver-Plated Motifs',
-      'Includes': '1 Bhai Rakhi + 1 Bhabhi Lumba + Roli Chawal Card'
-    },
-    occasion: 'Raksha Bandhan',
-    createdAt: '2026-08-05T08:10:00Z'
-  }
-];
+// Initial Seed Products (Clean slate - no dummy data)
+const initialProducts: Product[] = [];
 
 // Initial Seed Overheads
 const initialOverheads: OverheadExpense[] = [];
 
 // Initial Seed Coupons
-const initialCoupons: Coupon[] = [
-  {
-    id: 'c-1',
-    code: 'FIRST10',
-    discountType: 'percent',
-    discountValue: 10,
-    minCartValue: 499,
-    usageLimit: 500,
-    usageCount: 42,
-    expiryDate: '2026-12-31',
-    active: true,
-    isPublic: true
-  },
-  {
-    id: 'c-2',
-    code: 'RAKHI200',
-    discountType: 'flat',
-    discountValue: 200,
-    minCartValue: 1499,
-    usageLimit: 200,
-    usageCount: 88,
-    expiryDate: '2026-09-15',
-    active: true,
-    isPublic: true
-  },
-  {
-    id: 'c-3',
-    code: 'HANDPICKED50',
-    discountType: 'flat',
-    discountValue: 50,
-    minCartValue: 299,
-    usageLimit: 1000,
-    usageCount: 156,
-    expiryDate: '2026-12-31',
-    active: true,
-    isPublic: true
-  },
-  {
-    id: 'c-4',
-    code: 'WELCOME100',
-    discountType: 'flat',
-    discountValue: 100,
-    minCartValue: 1,
-    usageLimit: 5000,
-    usageCount: 12,
-    expiryDate: '2026-12-31',
-    active: true,
-    isPublic: true
-  }
-];
+const initialCoupons: Coupon[] = [];
 
 // Initial Banner
 const initialBanner: StoreBanner = {
   id: 'b-1',
-  text: '🎉 Festive Offer: Flat ₹200 OFF on orders over ₹1499 with coupon RAKHI200! Free Handpicked Store Pickup.',
+  text: '🎉 Welcome to Anita Gift House! Explore our handpicked festive gifts and artisanal hampers.',
   active: true,
   bgGradient: 'from-crimson via-terracotta to-crimson'
 };
@@ -414,7 +233,13 @@ class DataStore {
     orderData.items.forEach(async (item) => {
       const prod = this.products.find(p => p.id === item.product.id);
       if (prod) {
-        prod.stock = Math.max(0, prod.stock - item.quantity);
+        const current = Number(prod.stock !== undefined ? prod.stock : 0);
+        prod.stock = Math.max(0, current - item.quantity);
+        supabaseRealtime.notify({
+          eventType: 'UPDATE',
+          table: 'products',
+          newRecord: prod
+        });
         try {
           await supabase.from('products').update({ stock: prod.stock }).eq('id', prod.id);
         } catch (e) {}
@@ -786,15 +611,19 @@ class DataStore {
         marginPercent: i.revenue > 0 ? Math.round(((i.revenue - i.cost) / i.revenue) * 100) : 0
       }));
 
-    const dailyTrends = [
-      { date: 'Aug 01', revenue: 4200, profit: 1850 },
-      { date: 'Aug 02', revenue: 5800, profit: 2400 },
-      { date: 'Aug 03', revenue: 7900, profit: 3200 },
-      { date: 'Aug 04', revenue: 6400, profit: 2750 },
-      { date: 'Aug 05', revenue: 9200, profit: 4100 },
-      { date: 'Aug 06', revenue: 8500, profit: 3800 },
-      { date: 'Aug 07', revenue: totalRevenue > 0 ? Math.max(totalRevenue, 6200) : 6200, profit: netProfit > 0 ? Math.max(netProfit, 2900) : 2900 }
-    ];
+    const dailyMap: Record<string, { date: string; revenue: number; profit: number }> = {};
+    verifiedOrders.forEach(o => {
+      const d = o.createdAt ? o.createdAt.split('T')[0] : new Date().toISOString().split('T')[0];
+      const collected = o.amountPaid !== undefined ? o.amountPaid : o.total;
+      const orderCost = (o.items || []).reduce((sum, i) => sum + ((i.product?.costPrice || 0) * i.quantity), 0);
+      const orderProfit = collected - orderCost;
+
+      if (!dailyMap[d]) dailyMap[d] = { date: d, revenue: 0, profit: 0 };
+      dailyMap[d].revenue += collected;
+      dailyMap[d].profit += orderProfit;
+    });
+
+    const dailyTrends = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
 
     return {
       totalRevenue,

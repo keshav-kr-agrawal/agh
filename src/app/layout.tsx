@@ -1,5 +1,6 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, Plus_Jakarta_Sans } from 'next/font/google';
+import { AuthRequiredModal } from '@/components/AuthRequiredModal';
 import './globals.css';
 
 const playfair = Playfair_Display({
@@ -13,6 +14,12 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: '--font-plus-jakarta',
   display: 'swap',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'Anita Gift House | Handpicked Gifts, Rakhis, Toys & Custom Hampers',
@@ -29,6 +36,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${plusJakarta.variable}`}>
       <body className="font-sans bg-cream text-espresso antialiased">
         {children}
+        <AuthRequiredModal />
       </body>
     </html>
   );

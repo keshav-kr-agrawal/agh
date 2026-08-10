@@ -29,10 +29,11 @@ export default function CustomerAccountPage() {
       const res = await fetch(`/api/orders/create?all=true`);
       const json = await res.json();
       if (json.data) {
-        const userPhoneClean = user!.phone.replace(/\s+/g, '');
-        const filtered = json.data.filter((o: Order) => 
-          o.customerPhone.replace(/\s+/g, '') === userPhoneClean || o.customerName === user!.name
-        );
+        const userDigits = user!.phone.replace(/\D/g, '').slice(-10);
+        const filtered = json.data.filter((o: Order) => {
+          const orderDigits = (o.customerPhone || '').replace(/\D/g, '').slice(-10);
+          return (userDigits && orderDigits === userDigits) || (o.customerName && o.customerName.trim().toLowerCase() === user!.name.trim().toLowerCase());
+        });
         setOrders(filtered);
       }
     } catch (e) {
@@ -183,39 +184,39 @@ export default function CustomerAccountPage() {
                   </div>
 
                   {/* Actions Bar */}
-                  <div className="pt-3 border-t border-cream-border/60 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div className="flex items-center gap-2">
+                  <div className="pt-3 border-t border-cream-border/60 flex flex-wrap items-center justify-between gap-2.5 text-[11px] sm:text-xs">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Link
                         href={`/track/${order.id}`}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-terracotta text-cream font-bold rounded-xl shadow hover:bg-crimson transition"
+                        className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-terracotta text-cream font-bold rounded-xl shadow hover:bg-crimson transition shrink-0"
                       >
-                        <Truck className="w-4 h-4 text-gold" /> Live Tracking
+                        <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold shrink-0" /> Live Tracking
                       </Link>
 
                       <Link
                         href={`/invoice/${order.id}`}
                         target="_blank"
-                        className="flex items-center gap-1.5 px-4 py-2 bg-cream-muted border border-cream-border font-bold text-espresso rounded-xl hover:bg-cream-border transition"
+                        className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-cream-muted border border-cream-border font-bold text-espresso rounded-xl hover:bg-cream-border transition shrink-0"
                       >
-                        <Printer className="w-4 h-4 text-terracotta" /> Order Invoice PDF
+                        <Printer className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-terracotta shrink-0" /> Order Invoice PDF
                       </Link>
                     </div>
 
-                    {/* Order Cancellation Logic: Customer can cancel ONLY before Admin Confirmation */}
+                    {/* Order Cancellation Logic */}
                     {order.paymentStatus !== 'VERIFIED' && order.paymentStatus !== 'CANCELLED' ? (
                       <button
                         onClick={() => handleCancelOrder(order.id)}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-crimson/15 text-crimson font-bold rounded-xl border border-crimson/30 hover:bg-crimson hover:text-cream transition"
+                        className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-crimson/15 text-crimson font-bold rounded-xl border border-crimson/30 hover:bg-crimson hover:text-cream transition shrink-0"
                       >
-                        <XCircle className="w-4 h-4" /> Cancel Order
+                        <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> Cancel Order
                       </button>
                     ) : order.paymentStatus === 'VERIFIED' ? (
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         Confirmed by Store Admin • Contact +91 9199272836 to modify
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold text-crimson bg-crimson/10 px-3 py-1.5 rounded-xl border border-crimson/20">
+                      <span className="text-[10px] sm:text-[11px] font-bold text-crimson bg-crimson/10 px-2.5 py-1.5 rounded-xl border border-crimson/20">
                         ✕ Order Cancelled
                       </span>
                     )}

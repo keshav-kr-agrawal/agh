@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Product, Category } from '@/types';
 import { CameraCaptureModal } from '@/components/CameraCaptureModal';
+import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary';
 
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'next/navigation';
@@ -582,20 +583,16 @@ export default function BatchProductsAdminPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={e => {
+                    onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = ev => {
-                          const result = ev.target?.result as string;
-                          if (result) {
-                            setEditingProduct(prev => ({
-                              ...prev,
-                              images: [result, ...(prev.images || [])]
-                            }));
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                        const uploadedUrl = await uploadToCloudinary(file);
+                        if (uploadedUrl) {
+                          setEditingProduct(prev => ({
+                            ...prev,
+                            images: [uploadedUrl, ...(prev.images || [])]
+                          }));
+                        }
                       }
                     }}
                     className="text-xs text-espresso/70 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cream-muted file:text-espresso"
@@ -610,11 +607,18 @@ export default function BatchProductsAdminPage() {
                         <img src={img} alt="Photo" className="w-full h-full object-cover" />
                         <button
                           type="button"
-                          onClick={() => setEditingProduct(prev => ({
-                            ...prev,
-                            images: prev.images?.filter((_, i) => i !== idx)
-                          }))}
-                          className="absolute top-0.5 right-0.5 p-0.5 bg-crimson text-cream rounded-full"
+                          onClick={async () => {
+                            const targetImg = editingProduct.images?.[idx];
+                            if (targetImg) {
+                              deleteFromCloudinary(targetImg);
+                            }
+                            setEditingProduct(prev => ({
+                              ...prev,
+                              images: prev.images?.filter((_, i) => i !== idx)
+                            }));
+                          }}
+                          className="absolute top-0.5 right-0.5 p-0.5 bg-crimson text-cream rounded-full hover:scale-110 transition"
+                          title="Delete photo from Cloudinary"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -671,10 +675,11 @@ export default function BatchProductsAdminPage() {
       <CameraCaptureModal
         isOpen={isCameraOpen}
         onClose={() => setIsCameraOpen(false)}
-        onCapture={(dataUrl) => {
+        onCapture={async (dataUrl) => {
+          const uploadedUrl = await uploadToCloudinary(dataUrl);
           setEditingProduct(prev => ({
             ...prev,
-            images: [dataUrl, ...(prev.images || [])]
+            images: [uploadedUrl || dataUrl, ...(prev.images || [])]
           }));
         }}
       />

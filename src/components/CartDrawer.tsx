@@ -146,7 +146,6 @@ export const CartDrawer: React.FC = () => {
 
     const user = useAuthStore.getState().user;
     if (!user) {
-      closeCart();
       useCartStore.getState().openAuthRequiredModal();
       return;
     }
@@ -235,20 +234,20 @@ export const CartDrawer: React.FC = () => {
     <div className="fixed inset-0 z-50 overflow-hidden font-sans">
       <div className="absolute inset-0 bg-espresso/60 backdrop-blur-xs transition-opacity" onClick={closeCart} />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-cream text-espresso shadow-2xl flex flex-col border-l border-cream-border">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+        <div className="w-full sm:w-96 md:w-[440px] max-w-full bg-cream text-espresso shadow-2xl flex flex-col border-l border-cream-border">
           {/* Header */}
-          <div className="p-6 border-b border-cream-border flex items-center justify-between bg-cream-muted">
+          <div className="p-4 sm:p-6 border-b border-cream-border flex items-center justify-between bg-cream-muted shrink-0">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-terracotta" />
-              <h2 className="text-lg font-serif font-bold text-espresso">
+              <h2 className="text-base sm:text-lg font-serif font-bold text-espresso">
                 {step === 'cart' && 'Your Shopping Bag'}
                 {step === 'details' && 'Checkout & Fulfillment'}
                 {step === 'payment' && 'Online UPI Payment'}
                 {step === 'confirmation' && 'Order Booking Confirmed!'}
               </h2>
             </div>
-            <button onClick={closeCart} className="p-2 rounded-full text-espresso/60 hover:text-espresso">
+            <button onClick={closeCart} className="p-2 rounded-full text-espresso/60 hover:text-espresso hover:bg-cream-border transition">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -566,7 +565,7 @@ export const CartDrawer: React.FC = () => {
 
           {/* Footer Checkout Summary Bar */}
           {step === 'cart' && cart.length > 0 && (
-            <div className="p-6 border-t border-cream-border bg-cream-muted space-y-4">
+            <div className="p-4 sm:p-6 border-t border-cream-border bg-cream-muted space-y-3 sm:space-y-4 shrink-0">
               <form onSubmit={handleApplyCoupon} className="flex gap-2">
                 <input
                   type="text"
@@ -635,7 +634,6 @@ export const CartDrawer: React.FC = () => {
                 onClick={() => {
                   const currentUser = useAuthStore.getState().user;
                   if (!currentUser) {
-                    closeCart();
                     useCartStore.getState().openAuthRequiredModal();
                     return;
                   }

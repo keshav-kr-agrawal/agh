@@ -77,21 +77,24 @@ export const ProductDetailModal: React.FC = () => {
       onClick={(e) => {
         if (e.target === e.currentTarget) setSelectedProduct(null);
       }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-espresso/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 animate-fadeIn"
+      className="fixed inset-0 z-50 bg-espresso/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 font-sans animate-fadeIn"
     >
-      <div className="relative w-full max-w-4xl max-h-[92vh] bg-cream border border-cream-border rounded-3xl shadow-2xl overflow-y-auto animate-slideUp flex flex-col my-auto">
-        {/* Sticky Mobile & Desktop Close Button */}
-        <div className="sticky top-3 right-3 z-30 flex justify-end p-2 pointer-events-none">
+      <div className="relative w-full max-w-[calc(100vw-1rem)] sm:max-w-4xl max-h-[94vh] sm:max-h-[90vh] bg-cream border border-cream-border rounded-2xl sm:rounded-3xl shadow-2xl overflow-y-auto animate-slideUp flex flex-col">
+        {/* Sticky Mobile & Desktop Close Header Bar */}
+        <div className="sticky top-0 z-40 bg-cream/95 backdrop-blur-md px-4 py-3 border-b border-cream-border/60 flex items-center justify-between shrink-0">
+          <span className="font-serif font-bold text-xs sm:text-sm text-espresso line-clamp-1">
+            {selectedProduct.title}
+          </span>
           <button
             onClick={() => setSelectedProduct(null)}
-            className="pointer-events-auto p-2.5 rounded-full bg-espresso text-cream sm:bg-cream-muted sm:text-espresso hover:bg-crimson hover:text-cream transition shadow-xl border border-cream-border"
+            className="p-1.5 rounded-full bg-cream-muted text-espresso hover:bg-crimson hover:text-cream transition border border-cream-border shrink-0 ml-2"
             title="Close Product Preview"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 -mt-12 sm:mt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Multi-Photo Carousel (Mobile Constrained max-h-[260px]) */}
           <div className="p-4 sm:p-6 bg-cream-muted border-b md:border-b-0 md:border-r border-cream-border flex flex-col justify-between">
             <div className="relative w-full aspect-square max-h-[260px] sm:max-h-[380px] rounded-2xl overflow-hidden border border-cream-border shadow-inner group mx-auto bg-cream">
