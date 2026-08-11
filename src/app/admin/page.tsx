@@ -112,6 +112,68 @@ export default function AdminDashboardPage() {
     return collected - itemCost;
   };
 
+  const memoizedOrders = React.useMemo(() => {
+    return orders
+      .filter(order => {
+        // 1. Status Filter
+        if (orderFilterTab === 'action_required') {
+          if (order.paymentStatus === 'VERIFIED' || order.paymentStatus === 'CANCELLED') return false;
+        } else if (orderFilterTab === 'verified') {
+          if (order.paymentStatus !== 'VERIFIED') return false;
+        } else if (orderFilterTab === 'pay_at_pickup') {
+          if (order.paymentStatus !== 'PAY_AT_PICKUP') return false;
+        } else if (orderFilterTab === 'cancelled') {
+          if (order.paymentStatus !== 'CANCELLED') return false;
+        }
+
+        // 2. Date Filter
+        const orderDate = new Date(order.createdAt);
+        const now = new Date();
+        if (orderDateFilter === 'today') {
+          if (orderDate.toDateString() !== now.toDateString()) return false;
+        } else if (orderDateFilter === '7days') {
+          const diffTime = Math.abs(now.getTime() - orderDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays > 7) return false;
+        } else if (orderDateFilter === 'month') {
+          if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false;
+        }
+
+        // 3. Search Query
+        if (orderSearchQuery) {
+          const q = orderSearchQuery.toLowerCase();
+          const matchId = order.id.toLowerCase().includes(q);
+          const matchName = order.customerName.toLowerCase().includes(q);
+          const matchPhone = order.customerPhone.toLowerCase().includes(q);
+          const matchItems = (order.items || []).some(i => i.product?.title?.toLowerCase().includes(q));
+          if (!matchId && !matchName && !matchPhone && !matchItems) return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (orderSortBy === 'date_desc') {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        if (orderSortBy === 'date_asc') {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        }
+        if (orderSortBy === 'amount_desc') {
+          return (b.amountPaid || b.total) - (a.amountPaid || a.total);
+        }
+        if (orderSortBy === 'amount_asc') {
+          return (a.amountPaid || a.total) - (b.amountPaid || b.total);
+        }
+        if (orderSortBy === 'profit_desc') {
+          return calculateOrderProfit(b) - calculateOrderProfit(a);
+        }
+        if (orderSortBy === 'profit_asc') {
+          return calculateOrderProfit(a) - calculateOrderProfit(b);
+        }
+        return 0;
+      });
+  }, [orders, orderFilterTab, orderDateFilter, orderSearchQuery, orderSortBy]);
+
   // POS Walk-In Form State
   const [posProductId, setPosProductId] = useState('');
   const [posQty, setPosQty] = useState(1);
@@ -120,6 +182,10 @@ export default function AdminDashboardPage() {
 
   const handleAdminCancelOrder = async (orderId: string) => {
     if (!confirm(`Are you sure you want to cancel order ${orderId}? Item stock will be restored immediately.`)) return;
+
+    // Instant Optimistic UI Update
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, paymentStatus: 'CANCELLED', orderStage: 'CANCELLED' } : o));
+
     try {
       const res = await fetch('/api/orders/cancel', {
         method: 'POST',
@@ -128,18 +194,23 @@ export default function AdminDashboardPage() {
       });
       const json = await res.json();
       if (json.success) {
-        alert('Order cancelled and stock restored successfully.');
-        refreshAdminData();
+        refreshAdminData(false);
       } else {
         alert(json.message || 'Failed to cancel order.');
+        refreshAdminData(false);
       }
     } catch {
       alert('Error cancelling order.');
+      refreshAdminData(false);
     }
   };
 
   const handleAdminDeleteOrder = async (orderId: string) => {
     if (!confirm(`CAUTION: Permanently delete order ${orderId}? This action cannot be undone.`)) return;
+
+    // Instant Optimistic UI Update
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+
     try {
       const res = await fetch('/api/orders/cancel', {
         method: 'POST',
@@ -148,13 +219,14 @@ export default function AdminDashboardPage() {
       });
       const json = await res.json();
       if (json.success) {
-        alert('Order permanently deleted.');
-        refreshAdminData();
+        refreshAdminData(false);
       } else {
         alert(json.message || 'Failed to delete order.');
+        refreshAdminData(false);
       }
     } catch {
       alert('Error deleting order.');
+      refreshAdminData(false);
     }
   };
 
@@ -218,8 +290,8 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const refreshAdminData = async () => {
-    setLoading(true);
+  const refreshAdminData = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     try {
       const [prodRes, ordRes, finRes] = await Promise.all([
         fetch('/api/products'),
@@ -242,9 +314,9 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    refreshAdminData();
+    refreshAdminData(true);
     const timer = setInterval(() => {
-      refreshAdminData();
+      refreshAdminData(false);
     }, 15000);
     return () => clearInterval(timer);
   }, []);
@@ -267,7 +339,7 @@ export default function AdminDashboardPage() {
         setIsProductModalOpen(false);
         setEditingProduct(null);
         alert('Product saved!');
-        refreshAdminData();
+        refreshAdminData(false);
       }
     } catch {
       alert('Error saving product');
@@ -278,12 +350,30 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     if (!editingOrder) return;
 
+    const targetOrder = editingOrder;
+
+    // Instant Optimistic UI Update
+    setOrders(prev => prev.map(o => {
+      if (o.id === targetOrder.id) {
+        return {
+          ...o,
+          paymentStatus: editStatus,
+          amountPaid: editAmountPaid,
+          adminNotes: editAdminNotes,
+          adminDiscountAdjustment: editAmountPaid < o.total ? o.total - editAmountPaid : 0
+        };
+      }
+      return o;
+    }));
+
+    setEditingOrder(null);
+
     try {
       const res = await fetch('/api/orders/verify-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId: editingOrder.id,
+          orderId: targetOrder.id,
           status: editStatus,
           amountPaid: editAmountPaid,
           adminNotes: editAdminNotes,
@@ -292,12 +382,14 @@ export default function AdminDashboardPage() {
       });
       const json = await res.json();
       if (json.success) {
-        setEditingOrder(null);
-        alert(`Order #${editingOrder.id} payment updated to ${editStatus}. Collected amount: ₹${editAmountPaid}`);
-        refreshAdminData();
+        refreshAdminData(false);
+      } else {
+        alert(json.message || 'Error updating order payment');
+        refreshAdminData(false);
       }
     } catch {
       alert('Error updating order payment');
+      refreshAdminData(false);
     }
   };
 
@@ -421,7 +513,7 @@ export default function AdminDashboardPage() {
               🔐 Password
             </button>
             <button
-              onClick={refreshAdminData}
+              onClick={() => refreshAdminData(false)}
               disabled={loading}
               className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-terracotta/10 text-terracotta font-bold border border-terracotta/20 hover:bg-terracotta hover:text-cream transition flex items-center gap-1"
               title="Refresh live orders, financial metrics, and products"
@@ -739,66 +831,7 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-cream-border">
-                    {orders
-                      .filter(order => {
-                        // 1. Status Filter
-                        if (orderFilterTab === 'action_required') {
-                          if (order.paymentStatus === 'VERIFIED' || order.paymentStatus === 'CANCELLED') return false;
-                        } else if (orderFilterTab === 'verified') {
-                          if (order.paymentStatus !== 'VERIFIED') return false;
-                        } else if (orderFilterTab === 'pay_at_pickup') {
-                          if (order.paymentStatus !== 'PAY_AT_PICKUP') return false;
-                        } else if (orderFilterTab === 'cancelled') {
-                          if (order.paymentStatus !== 'CANCELLED') return false;
-                        }
-
-                        // 2. Date Filter
-                        const orderDate = new Date(order.createdAt);
-                        const now = new Date();
-                        if (orderDateFilter === 'today') {
-                          if (orderDate.toDateString() !== now.toDateString()) return false;
-                        } else if (orderDateFilter === '7days') {
-                          const diffTime = Math.abs(now.getTime() - orderDate.getTime());
-                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                          if (diffDays > 7) return false;
-                        } else if (orderDateFilter === 'month') {
-                          if (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear()) return false;
-                        }
-
-                        // 3. Search Query
-                        if (orderSearchQuery) {
-                          const q = orderSearchQuery.toLowerCase();
-                          const matchId = order.id.toLowerCase().includes(q);
-                          const matchName = order.customerName.toLowerCase().includes(q);
-                          const matchPhone = order.customerPhone.toLowerCase().includes(q);
-                          const matchItems = (order.items || []).some(i => i.product.title.toLowerCase().includes(q));
-                          if (!matchId && !matchName && !matchPhone && !matchItems) return false;
-                        }
-
-                        return true;
-                      })
-                      .sort((a, b) => {
-                        if (orderSortBy === 'date_desc') {
-                          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                        }
-                        if (orderSortBy === 'date_asc') {
-                          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                        }
-                        if (orderSortBy === 'amount_desc') {
-                          return (b.amountPaid || b.total) - (a.amountPaid || a.total);
-                        }
-                        if (orderSortBy === 'amount_asc') {
-                          return (a.amountPaid || a.total) - (b.amountPaid || b.total);
-                        }
-                        if (orderSortBy === 'profit_desc') {
-                          return calculateOrderProfit(b) - calculateOrderProfit(a);
-                        }
-                        if (orderSortBy === 'profit_asc') {
-                          return calculateOrderProfit(a) - calculateOrderProfit(b);
-                        }
-                        return 0;
-                      })
-                      .map(order => {
+                    {memoizedOrders.map(order => {
                         const amountPaid = order.amountPaid !== undefined ? order.amountPaid : order.total;
                         const orderProfit = calculateOrderProfit(order);
                         const marginPercent = amountPaid > 0 ? Math.round((orderProfit / amountPaid) * 100) : 0;
