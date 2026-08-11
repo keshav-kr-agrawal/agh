@@ -50,6 +50,17 @@ export const CartDrawer: React.FC = () => {
   const [pincode, setPincode] = useState('110001');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('online_upi');
 
+  // Gift Customization State
+  const [isGiftOrder, setIsGiftOrder] = useState(false);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [recipientAddress, setRecipientAddress] = useState('');
+  const [recipientPincode, setRecipientPincode] = useState('');
+  const [giftOccasion, setGiftOccasion] = useState('Birthday');
+  const [giftNote, setGiftNote] = useState('');
+  const [giftPackingOption, setGiftPackingOption] = useState('Standard Ribbon Wrap');
+  const [giftPackingBudget, setGiftPackingBudget] = useState<number>(0);
+
   // Coupon State
   const [couponInput, setCouponInput] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -180,7 +191,16 @@ export const CartDrawer: React.FC = () => {
           discount: couponDiscount,
           couponCode: appliedCoupon?.code || '',
           total,
-          paymentProofUrl: paymentScreenshot || ''
+          paymentProofUrl: paymentScreenshot || '',
+          isGiftOrder,
+          recipientName,
+          recipientPhone,
+          recipientAddress,
+          recipientPincode,
+          giftOccasion,
+          giftNote,
+          giftPackingOption,
+          giftPackingBudget
         })
       });
 
@@ -224,10 +244,13 @@ export const CartDrawer: React.FC = () => {
   };
 
   const handleWhatsAppSend = () => {
-    const text = encodeURIComponent(
-      `Hello Anita Gift House (+91 9199272836),\nI have placed Order #${createdOrderId} for ₹${total} (${fulfillmentType === 'handpicked' ? 'Store Pickup' : 'Parcel Shipping'}).\nName: ${customerName}\nPhone: ${customerPhone}\nPayment Method: ${paymentMethod === 'pay_at_pickup' ? 'Pay at Pickup' : 'Online UPI'}`
-    );
-    window.open(`https://wa.me/919199272836?text=${text}`, '_blank');
+    let textStr = `Hello Anita Gift House (+91 9199272836),\nI have placed Order #${createdOrderId} for ₹${total} (${fulfillmentType === 'handpicked' ? 'Store Pickup' : 'Parcel Shipping'}).\nName: ${customerName}\nPhone: ${customerPhone}\nPayment Method: ${paymentMethod === 'pay_at_pickup' ? 'Pay at Pickup' : 'Online UPI'}`;
+    
+    if (isGiftOrder) {
+      textStr += `\n\n🎁 **GIFT ORDER DETAILS**:\n- Occasion: ${giftOccasion}\n- Recipient Name: ${recipientName || 'Gift Recipient'}\n- Recipient Phone: ${recipientPhone || 'N/A'}\n- Gift Note: "${giftNote || 'Happy Celebration!'}"\n- Gift Packaging: ${giftPackingOption}`;
+    }
+
+    window.open(`https://wa.me/919199272836?text=${encodeURIComponent(textStr)}`, '_blank');
   };
 
   return (
@@ -321,6 +344,91 @@ export const CartDrawer: React.FC = () => {
                     placeholder="+91 98765 43210"
                     className="w-full px-3 py-2 bg-cream border border-cream-border rounded-xl focus:ring-2 focus:ring-terracotta font-mono"
                   />
+                </div>
+
+                {/* GIFT CUSTOMIZATION TOGGLE & EXPANDABLE FORM */}
+                <div className="p-3.5 bg-gradient-to-r from-terracotta/10 via-gold/10 to-crimson/10 border border-terracotta/20 rounded-2xl space-y-3">
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="font-bold text-espresso flex items-center gap-1.5 text-xs">
+                      🎁 Ordering for someone else? (Gift Packing & Note)
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={isGiftOrder}
+                      onChange={e => setIsGiftOrder(e.target.checked)}
+                      className="w-4 h-4 rounded text-terracotta focus:ring-terracotta cursor-pointer"
+                    />
+                  </label>
+
+                  {isGiftOrder && (
+                    <div className="pt-2 border-t border-terracotta/20 space-y-3 animate-fadeIn text-xs">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block font-bold text-espresso mb-1">Gift Occasion</label>
+                          <select
+                            value={giftOccasion}
+                            onChange={e => setGiftOccasion(e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-cream border border-cream-border rounded-xl font-medium"
+                          >
+                            <option value="Birthday">🎂 Birthday</option>
+                            <option value="Anniversary">💍 Anniversary</option>
+                            <option value="Rakhi">🪡 Rakhi</option>
+                            <option value="Festival">🪔 Festival / Diwali</option>
+                            <option value="Just Because">💖 Just Because</option>
+                            <option value="Other">🎁 Special Surprise</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-espresso mb-1">Packaging Preference</label>
+                          <select
+                            value={giftPackingOption}
+                            onChange={e => setGiftPackingOption(e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-cream border border-cream-border rounded-xl font-medium"
+                          >
+                            <option value="Standard Ribbon Wrap">🎀 Standard Ribbon Wrap</option>
+                            <option value="Premium Hamper Box">🎁 Premium Hamper Box</option>
+                            <option value="Custom Budget Packing">✨ Custom Budget Packing</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-espresso mb-1">Personalized Card Message / Gift Note</label>
+                        <textarea
+                          rows={2}
+                          value={giftNote}
+                          onChange={e => setGiftNote(e.target.value)}
+                          placeholder="e.g. Happy Birthday Sneha! Wishing you all the joy in the world. - With love from Rahul"
+                          className="w-full px-3 py-2 bg-cream border border-cream-border rounded-xl focus:ring-2 focus:ring-terracotta"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block font-bold text-espresso mb-1">Recipient Name</label>
+                          <input
+                            type="text"
+                            value={recipientName}
+                            onChange={e => setRecipientName(e.target.value)}
+                            placeholder="Recipient Full Name"
+                            className="w-full px-3 py-1.5 bg-cream border border-cream-border rounded-xl"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block font-bold text-espresso mb-1">Recipient Phone</label>
+                          <input
+                            type="tel"
+                            value={recipientPhone}
+                            onChange={e => setRecipientPhone(e.target.value)}
+                            placeholder="+91 98765 43210"
+                            className="w-full px-3 py-1.5 bg-cream border border-cream-border rounded-xl font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* PAYMENT METHOD SELECTOR: PAY AT PICKUP VS ONLINE UPI */}

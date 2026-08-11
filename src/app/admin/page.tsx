@@ -873,6 +873,17 @@ export default function AdminDashboardPage() {
                               <span className="text-[10px] text-terracotta capitalize font-semibold block mt-0.5">
                                 {order.fulfillmentType === 'handpicked' ? 'Store Pickup' : 'Parcel Delivery'}
                               </span>
+                              {order.isGiftOrder && (
+                                <div className="mt-1.5 p-1.5 bg-gradient-to-r from-terracotta/15 via-gold/15 to-crimson/15 border border-terracotta/30 rounded-lg text-[10px] space-y-0.5">
+                                  <span className="font-bold text-crimson block">🎁 GIFT ORDER ({order.giftOccasion || 'Special'})</span>
+                                  {order.recipientName && (
+                                    <span className="block text-espresso font-semibold">To: {order.recipientName} ({order.recipientPhone || 'N/A'})</span>
+                                  )}
+                                  {order.giftNote && (
+                                    <span className="italic block text-espresso/80 line-clamp-2">"{order.giftNote}"</span>
+                                  )}
+                                </div>
+                              )}
                             </td>
 
                             <td className="p-4">

@@ -167,6 +167,33 @@ export default function InvoicePage() {
           </div>
         </div>
 
+        {/* GIFT CUSTOMIZATION CARD NOTE (IF APPLICABLE) */}
+        {activeOrder.isGiftOrder && (
+          <div className="bg-gradient-to-r from-terracotta/10 via-gold/15 to-crimson/10 border border-terracotta/30 rounded-2xl p-5 space-y-2 text-xs">
+            <div className="flex items-center justify-between border-b border-terracotta/20 pb-2">
+              <span className="font-serif font-bold text-terracotta text-sm flex items-center gap-1.5">
+                🎁 Personalized Gift Message & Packing
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full bg-terracotta text-cream font-bold text-[10px]">
+                {activeOrder.giftOccasion || 'Special Gift'}
+              </span>
+            </div>
+            
+            {activeOrder.giftNote && (
+              <div className="p-3 bg-cream/90 rounded-xl border border-cream-border italic text-espresso font-serif text-sm">
+                "{activeOrder.giftNote}"
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between text-espresso/80 pt-1">
+              {activeOrder.recipientName && (
+                <p><strong>To Recipient:</strong> {activeOrder.recipientName} ({activeOrder.recipientPhone || 'N/A'})</p>
+              )}
+              <p><strong>Packaging:</strong> {activeOrder.giftPackingOption || 'Standard Ribbon Wrap'}</p>
+            </div>
+          </div>
+        )}
+
         {/* Itemized Table */}
         <div>
           <table className="w-full text-left border-collapse text-xs">

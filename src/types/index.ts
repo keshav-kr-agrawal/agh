@@ -51,6 +51,15 @@ export interface Order {
   trackingNumber?: string;
   paymentProofUrl?: string;
   adminNotes?: string;
+  isGiftOrder?: boolean;
+  recipientName?: string;
+  recipientPhone?: string;
+  recipientAddress?: string;
+  recipientPincode?: string;
+  giftOccasion?: string;
+  giftNote?: string;
+  giftPackingOption?: string;
+  giftPackingBudget?: number;
   createdAt: string;
   updatedAt: string;
 }

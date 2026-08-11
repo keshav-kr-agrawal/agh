@@ -74,7 +74,16 @@ export async function POST(request: NextRequest) {
       discount,
       couponCode,
       paymentProofUrl,
-      paymentMethod
+      paymentMethod,
+      isGiftOrder,
+      recipientName,
+      recipientPhone,
+      recipientAddress,
+      recipientPincode,
+      giftOccasion,
+      giftNote,
+      giftPackingOption,
+      giftPackingBudget
     } = body;
 
     if (!customerName || !customerPhone || !items || items.length === 0) {
@@ -161,7 +170,16 @@ export async function POST(request: NextRequest) {
       discount: cleanDiscount,
       couponCode: couponCode || '',
       total: calculatedTotal,
-      paymentProofUrl: paymentProofUrl || ''
+      paymentProofUrl: paymentProofUrl || '',
+      isGiftOrder: Boolean(isGiftOrder),
+      recipientName: recipientName || '',
+      recipientPhone: recipientPhone || '',
+      recipientAddress: recipientAddress || '',
+      recipientPincode: recipientPincode || '',
+      giftOccasion: giftOccasion || '',
+      giftNote: giftNote || '',
+      giftPackingOption: giftPackingOption || '',
+      giftPackingBudget: Number(giftPackingBudget || 0)
     });
 
     // 2. Synchronous/Async Inventory Deduction & Supabase DB Insert
@@ -186,7 +204,16 @@ export async function POST(request: NextRequest) {
           amount_paid: order.amountPaid,
           payment_status: order.paymentStatus,
           order_stage: order.orderStage,
-          payment_proof_url: order.paymentProofUrl
+          payment_proof_url: order.paymentProofUrl,
+          is_gift_order: order.isGiftOrder,
+          recipient_name: order.recipientName,
+          recipient_phone: order.recipientPhone,
+          recipient_address: order.recipientAddress,
+          recipient_pincode: order.recipientPincode,
+          gift_occasion: order.giftOccasion,
+          gift_note: order.giftNote,
+          gift_packing_option: order.giftPackingOption,
+          gift_packing_budget: order.giftPackingBudget
         }]);
 
         // Deduct inventory stock in Supabase PostgreSQL DB
