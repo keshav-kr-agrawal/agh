@@ -188,31 +188,40 @@ export const useAuthStore = create<AuthState>((set, get) => {
       set({ user: userSession });
     },
 
-    loginWithPassword: (phone, password) => {
-      const cleanPhone = phone.replace(/\s+/g, '');
-      const registered = getRegisteredCustomers().find(c => c.phone.replace(/\s+/g, '') === cleanPhone);
+    loginWithPassword: (identifier, password) => {
+      const trimmed = identifier.trim();
+      const isEmail = trimmed.includes('@');
+      const cleanPhone = trimmed.replace(/\s+/g, '');
+      const customers = getRegisteredCustomers();
 
-      let userName = `Customer (${phone.slice(-4)})`;
-      let userEmail = '';
+      const registered = customers.find(c => {
+        if (isEmail && c.email) {
+          return c.email.toLowerCase().trim() === trimmed.toLowerCase();
+        }
+        return c.phone.replace(/\s+/g, '') === cleanPhone;
+      });
+
+      let userName = registered ? registered.name : isEmail ? trimmed.split('@')[0] : `Customer (${cleanPhone.slice(-4)})`;
+      let userPhone = registered ? registered.phone : isEmail ? '+91 9999999999' : cleanPhone;
+      let userEmail = registered ? registered.email || '' : isEmail ? trimmed : '';
 
       if (registered) {
         if (registered.password && password && registered.password !== password) {
           return { success: false, message: 'Incorrect password. Please try again.' };
         }
-        userName = registered.name;
-        userEmail = registered.email || '';
       } else {
         // Register default profile on first login
         saveRegisteredCustomer({
-          phone,
+          phone: userPhone,
           name: userName,
+          email: userEmail,
           password: password || '',
           createdAt: new Date().toISOString()
         });
       }
 
       const userSession: UserSession = {
-        phone,
+        phone: userPhone,
         name: userName,
         email: userEmail,
         role: 'customer'
