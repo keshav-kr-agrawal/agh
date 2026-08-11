@@ -1040,8 +1040,8 @@ export default function AdminDashboardPage() {
 
       {/* EDIT ORDER FINANCIALS & PAYMENT STATUS MODAL */}
       {editingOrder && (
-        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-cream border border-cream-border rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 font-sans">
+          <div className="bg-cream border border-cream-border rounded-3xl p-4 sm:p-6 w-full max-w-[calc(100vw-1.5rem)] sm:max-w-md space-y-4 shadow-2xl animate-scaleUp max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-cream-border pb-3">
               <h3 className="font-serif font-bold text-lg text-espresso">
                 Edit Order Financials: #{editingOrder.id}
@@ -1122,8 +1122,8 @@ export default function AdminDashboardPage() {
 
       {/* PRODUCT EDIT / ADD MODAL WITH CAMERA SNAP & MULTI FILE SELECTOR */}
       {isProductModalOpen && editingProduct && (
-        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-cream border border-cream-border rounded-3xl p-6 w-full max-w-xl space-y-4 shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 font-sans overflow-y-auto">
+          <div className="bg-cream border border-cream-border rounded-3xl p-4 sm:p-6 w-full max-w-[calc(100vw-1.5rem)] sm:max-w-xl space-y-4 shadow-2xl animate-scaleUp max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-cream-border pb-3">
               <h3 className="font-serif font-bold text-lg text-espresso">
                 {editingProduct.id ? 'Edit Product Merchandising & Photos' : 'Add New Catalogue Item'}
@@ -1318,8 +1318,8 @@ export default function AdminDashboardPage() {
 
       {/* CHANGE ADMIN PASSWORD MODAL */}
       {isPasswordModalOpen && (
-        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-cream border border-cream-border rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 font-sans">
+          <div className="bg-cream border border-cream-border rounded-3xl p-4 sm:p-8 max-w-[calc(100vw-1.5rem)] sm:max-w-md w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-cream-border pb-3">
               <h3 className="text-lg font-serif font-bold text-espresso flex items-center gap-2">
                 🔐 Update Admin Passcode

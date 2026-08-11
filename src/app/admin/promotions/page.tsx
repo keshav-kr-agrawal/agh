@@ -450,8 +450,8 @@ export default function AdminPromotionsPage() {
 
       {/* CREATE / EDIT COUPON MODAL WITH ITEM PICKER */}
       {isCouponModalOpen && (
-        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-cream border border-cream-border rounded-3xl p-6 w-full max-w-xl space-y-4 shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-espresso/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 font-sans overflow-y-auto">
+          <div className="bg-cream border border-cream-border rounded-3xl p-4 sm:p-6 w-full max-w-[calc(100vw-1.5rem)] sm:max-w-xl space-y-4 shadow-2xl animate-scaleUp max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-cream-border pb-3">
               <h3 className="font-serif font-bold text-lg text-espresso">
                 {editingCoupon.id ? 'Edit Coupon Offer & Items' : 'Create Custom Coupon Offer'}
