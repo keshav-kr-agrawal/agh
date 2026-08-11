@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { Phone, Lock, User, Mail, ArrowRight, Eye, EyeOff, ShieldCheck, LogIn, UserPlus } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCartStore } from '@/store/useCartStore';
-import { signInWithGoogle } from '@/lib/supabase';
 
 function LoginContent() {
   const router = useRouter();
