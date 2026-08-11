@@ -52,8 +52,12 @@ export async function signInWithGoogle() {
   });
 
   if (error) {
-    console.error('Google Sign In Error:', error.message);
-    return { success: false, error: error.message };
+    let friendlyMessage = error.message;
+    if (error.message.includes('provider is not enabled') || error.message.includes('validation_failed')) {
+      friendlyMessage = 'Google Auth provider is not enabled in your Supabase Dashboard yet. Please go to Supabase Dashboard -> Authentication -> Providers -> Google and toggle Enabled to ON.';
+    }
+    console.error('Google Sign In Error:', friendlyMessage);
+    return { success: false, error: friendlyMessage };
   }
 
   return { success: true, data };
