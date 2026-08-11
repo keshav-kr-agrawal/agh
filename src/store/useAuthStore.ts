@@ -21,6 +21,7 @@ interface AuthState {
   loginAdmin: (identifier: string, pin: string) => boolean;
   updateAdminPin: (oldPin: string, newPin: string) => { success: boolean; message: string };
   logout: () => void;
+  logoutAdmin: () => void;
 }
 
 export const ADMIN_PHONE = '+91 9199272836';
@@ -279,11 +280,28 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('agh_customer_session');
         localStorage.removeItem('agh_user_session');
+        localStorage.removeItem('agh_admin_session');
+        localStorage.removeItem('agh_admin_token');
       }
       try {
         supabase.auth.signOut();
       } catch (e) {}
-      set({ user: null });
+      try {
+        fetch('/api/admin/logout', { method: 'POST' });
+      } catch (e) {}
+      set({ user: null, isAdmin: false });
+    },
+
+    logoutAdmin: () => {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('agh_admin_session');
+        localStorage.removeItem('agh_admin_token');
+        localStorage.removeItem('agh_user_session');
+      }
+      try {
+        fetch('/api/admin/logout', { method: 'POST' });
+      } catch (e) {}
+      set({ isAdmin: false });
     }
   };
 });

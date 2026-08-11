@@ -36,7 +36,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { isAdmin, updateAdminPin, initializeAuth } = useAuthStore();
+  const { isAdmin, updateAdminPin, initializeAuth, logoutAdmin } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'inventory' | 'orders' | 'pos'>('analytics');
   
@@ -534,6 +534,16 @@ export default function AdminDashboardPage() {
               title="Purge test sales orders and reset revenue metrics to ₹0"
             >
               🧹 Reset Data
+            </button>
+            <button
+              onClick={() => {
+                logoutAdmin();
+                router.push('/admin/login');
+              }}
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-crimson text-cream font-bold hover:bg-crimson-dark transition flex items-center gap-1 shadow-sm"
+              title="Log out of Admin Portal"
+            >
+              🚪 Log Out Admin
             </button>
           </div>
         </div>
