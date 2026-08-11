@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   Package, 
@@ -24,7 +24,8 @@ import {
   Camera,
   Save,
   CreditCard,
-  Trash2
+  Trash2,
+  Bell
 } from 'lucide-react';
 import { Product, Order, FinancialMetrics, Category, PaymentStatus } from '@/types';
 import { Navbar } from '@/components/Navbar';
@@ -290,6 +291,38 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const prevOrderCountRef = useRef<number | null>(null);
+
+  const playOrderChime = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {}
+  };
+
+  const requestNotificationPermission = () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          alert('🔔 Order Sound Chime & Push Alerts enabled successfully!');
+          playOrderChime();
+        }
+      });
+    } else {
+      alert('Browser notification API is not supported on this device.');
+    }
+  };
+
   const refreshAdminData = async (isInitial = false) => {
     if (isInitial) setLoading(true);
     try {
@@ -313,7 +346,24 @@ export default function AdminDashboardPage() {
 
       if (prodJson.success) setProducts(prodJson.data);
       if (finJson.success) setMetrics(finJson.data);
-      if (ordJson.success) setOrders(ordJson.data);
+      if (ordJson.success && Array.isArray(ordJson.data)) {
+        const newOrders: Order[] = ordJson.data;
+        if (prevOrderCountRef.current !== null && newOrders.length > prevOrderCountRef.current) {
+          // Play Cash Register Chime Sound
+          playOrderChime();
+
+          // Trigger Push Notification
+          const latestOrder = newOrders[0];
+          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && latestOrder) {
+            new Notification('🚨 New Order Received at Anita Gift House!', {
+              body: `Order #${latestOrder.id} for ₹${latestOrder.total} from ${latestOrder.customerName}`,
+              icon: '/agh.png'
+            });
+          }
+        }
+        prevOrderCountRef.current = newOrders.length;
+        setOrders(newOrders);
+      }
     } catch (e) {
       console.error('Failed to load admin data', e);
     } finally {
@@ -519,6 +569,13 @@ export default function AdminDashboardPage() {
               className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gold/20 text-espresso font-bold border border-gold/40 hover:bg-gold transition flex items-center gap-1"
             >
               🔐 Password
+            </button>
+            <button
+              onClick={requestNotificationPermission}
+              className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 hover:bg-emerald-200 transition flex items-center gap-1 shadow-xs"
+              title="Enable instant sound chime and browser push notifications for new orders"
+            >
+              <Bell className="w-3.5 h-3.5 text-emerald-700" /> 🔔 Order Sound Alerts
             </button>
             <button
               onClick={() => refreshAdminData(false)}
