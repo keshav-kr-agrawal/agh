@@ -58,3 +58,56 @@ export async function signInWithGoogle() {
 
   return { success: true, data };
 }
+
+/**
+ * Trigger Real Supabase Email & Password Signup Flow
+ */
+export async function signUpWithEmail(email: string, password: string, name: string, phone: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: name,
+        phone_number: phone
+      }
+    }
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data };
+}
+
+/**
+ * Trigger Real Supabase Email & Password Login Flow
+ */
+export async function signInWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data };
+}
+
+/**
+ * Trigger Real Supabase Phone OTP Login Flow
+ */
+export async function signInWithOtp(phone: string) {
+  const { data, error } = await supabase.auth.signInWithOtp({
+    phone
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data };
+}

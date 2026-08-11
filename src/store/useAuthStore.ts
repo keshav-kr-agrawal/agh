@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { UserSession } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 interface RegisteredCustomer {
   phone: string;
@@ -103,6 +104,35 @@ export const useAuthStore = create<AuthState>((set, get) => {
           }
 
           set({ user: custUser, isAdmin: hasAdmin });
+
+          // Supabase Auth Sync
+          supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user) {
+              const supaUser = session.user;
+              const supaCustUser: UserSession = {
+                phone: supaUser.phone || supaUser.user_metadata?.phone_number || supaUser.email || '+91 9999999999',
+                name: supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || 'Customer',
+                email: supaUser.email || '',
+                role: 'customer'
+              };
+              set({ user: supaCustUser });
+              localStorage.setItem('agh_customer_session', JSON.stringify(supaCustUser));
+            }
+          });
+
+          supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user) {
+              const supaUser = session.user;
+              const supaCustUser: UserSession = {
+                phone: supaUser.phone || supaUser.user_metadata?.phone_number || supaUser.email || '+91 9999999999',
+                name: supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || 'Customer',
+                email: supaUser.email || '',
+                role: 'customer'
+              };
+              set({ user: supaCustUser });
+              localStorage.setItem('agh_customer_session', JSON.stringify(supaCustUser));
+            }
+          });
         } catch {}
       }
     },
@@ -241,6 +271,9 @@ export const useAuthStore = create<AuthState>((set, get) => {
         localStorage.removeItem('agh_customer_session');
         localStorage.removeItem('agh_user_session');
       }
+      try {
+        supabase.auth.signOut();
+      } catch (e) {}
       set({ user: null });
     }
   };
