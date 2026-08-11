@@ -601,14 +601,6 @@ export const CartDrawer: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={handleWhatsAppSend}
-                    className="w-full py-2.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl hover:bg-emerald-200 transition flex items-center justify-center gap-2"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    Send Payment Proof via WhatsApp (+91 9199272836)
-                  </button>
-
-                  <button
                     type="button"
                     onClick={() => setStep('details')}
                     className="w-full py-2 bg-cream-muted border border-cream-border text-espresso font-bold text-xs rounded-xl hover:bg-cream-border transition flex items-center justify-center gap-1 mt-1"
@@ -630,7 +622,7 @@ export const CartDrawer: React.FC = () => {
                   <p className="text-xs text-espresso/70 mt-1">
                     {paymentMethod === 'pay_at_pickup'
                       ? 'Your order is recorded for Store Pickup. You can pay cash or UPI at the store desk!'
-                      : 'Thank you! Store admin (+91 9199272836) is verifying your payment proof.'}
+                      : 'Thank you! Your order has been placed on our website system.'}
                   </p>
                 </div>
 
@@ -652,9 +644,16 @@ export const CartDrawer: React.FC = () => {
                 <div className="space-y-2">
                   <button
                     onClick={() => router.push(`/invoice/${createdOrderId}`)}
-                    className="w-full py-3 bg-terracotta text-cream font-bold text-xs rounded-xl shadow hover:bg-crimson transition"
+                    className="w-full py-3 bg-terracotta text-cream font-bold text-xs rounded-xl shadow hover:bg-crimson transition flex items-center justify-center gap-2"
                   >
-                    View & Print Order Invoice PDF
+                    📄 View & Print Digital Order Invoice
+                  </button>
+
+                  <button
+                    onClick={() => router.push(`/track/${createdOrderId}`)}
+                    className="w-full py-2.5 bg-cream-muted border border-cream-border text-espresso font-bold text-xs rounded-xl hover:bg-cream-border transition flex items-center justify-center gap-2"
+                  >
+                    🚚 Track Order Status
                   </button>
 
                   <button
@@ -662,7 +661,7 @@ export const CartDrawer: React.FC = () => {
                       closeCart();
                       setStep('cart');
                     }}
-                    className="w-full py-2.5 border border-cream-border text-espresso font-semibold text-xs rounded-xl hover:bg-cream-muted"
+                    className="w-full py-2 border border-cream-border text-espresso/70 font-semibold text-xs rounded-xl hover:bg-cream-muted"
                   >
                     Continue Shopping
                   </button>

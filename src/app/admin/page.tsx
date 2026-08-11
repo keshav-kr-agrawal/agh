@@ -98,6 +98,9 @@ export default function AdminDashboardPage() {
   const [editAmountPaid, setEditAmountPaid] = useState<number>(0);
   const [editAdminNotes, setEditAdminNotes] = useState<string>('');
 
+  // Live New Order Alert Banner State
+  const [latestNewOrderAlert, setLatestNewOrderAlert] = useState<Order | null>(null);
+
   // Order Filtering, Multi-Metric Sorting & Search State
   const [orderFilterTab, setOrderFilterTab] = useState<'all' | 'action_required' | 'verified' | 'pay_at_pickup' | 'cancelled'>('all');
   const [orderSortBy, setOrderSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' | 'profit_desc' | 'profit_asc'>('date_desc');
@@ -349,11 +352,13 @@ export default function AdminDashboardPage() {
       if (ordJson.success && Array.isArray(ordJson.data)) {
         const newOrders: Order[] = ordJson.data;
         if (prevOrderCountRef.current !== null && newOrders.length > prevOrderCountRef.current) {
+          const latestOrder = newOrders[0];
+          setLatestNewOrderAlert(latestOrder);
+
           // Play Cash Register Chime Sound
           playOrderChime();
 
           // Trigger Push Notification
-          const latestOrder = newOrders[0];
           if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted' && latestOrder) {
             new Notification('🚨 New Order Received at Anita Gift House!', {
               body: `Order #${latestOrder.id} for ₹${latestOrder.total} from ${latestOrder.customerName}`,
@@ -604,6 +609,40 @@ export default function AdminDashboardPage() {
             </button>
           </div>
         </div>
+
+        {/* LIVE NEW ORDER ALERT BANNER */}
+        {latestNewOrderAlert && (
+          <div className="bg-gradient-to-r from-crimson via-terracotta to-crimson text-cream p-4 rounded-2xl shadow-xl flex items-center justify-between border-2 border-gold font-sans animate-fadeIn mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl animate-pulse">🚨</span>
+              <div>
+                <p className="font-extrabold text-sm text-gold uppercase tracking-wider">NEW WEBSITE ORDER RECEIVED!</p>
+                <p className="text-xs text-cream/90 mt-0.5">
+                  Order <strong>#{latestNewOrderAlert.id}</strong> (₹{latestNewOrderAlert.total}) placed by <strong>{latestNewOrderAlert.customerName}</strong> ({latestNewOrderAlert.customerPhone}).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  setActiveTab('orders');
+                  setOrderFilterTab('action_required');
+                  setLatestNewOrderAlert(null);
+                }}
+                className="px-4 py-2 bg-gold text-espresso font-extrabold text-xs rounded-xl hover:bg-cream transition shadow-md"
+              >
+                View Payment Queue
+              </button>
+              <button
+                onClick={() => setLatestNewOrderAlert(null)}
+                className="p-1 hover:text-gold transition font-bold text-sm px-2"
+                title="Dismiss Banner"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* TAB 1: DATA ANALYTICS & PROFIT DASHBOARD */}
         {activeTab === 'analytics' && metrics && (
