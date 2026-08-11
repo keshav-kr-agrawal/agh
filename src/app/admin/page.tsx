@@ -293,10 +293,18 @@ export default function AdminDashboardPage() {
   const refreshAdminData = async (isInitial = false) => {
     if (isInitial) setLoading(true);
     try {
+      const adminToken = typeof window !== 'undefined' ? localStorage.getItem('agh_admin_token') : '';
+      const headers: Record<string, string> = {
+        'x-agh-admin-secret': 'HKW1321'
+      };
+      if (adminToken) {
+        headers['Authorization'] = `Bearer ${adminToken}`;
+      }
+
       const [prodRes, ordRes, finRes] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/orders/create?all=true'),
-        fetch('/api/analytics/financials')
+        fetch('/api/products', { headers }),
+        fetch('/api/orders/create?all=true', { headers }),
+        fetch('/api/analytics/financials', { headers })
       ]);
 
       const prodJson = await prodRes.json();

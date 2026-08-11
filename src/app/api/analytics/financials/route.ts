@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
 import { supabase } from '@/lib/supabase';
 import { Order, OverheadExpense } from '@/types';
+import { verifyAdminSession } from '@/lib/auth-guard';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    if (!verifyAdminSession(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized: Admin authorization required' }, { status: 401 });
+    }
     // 1. Fetch live orders from Supabase
     const { data: supaOrders, error: ordersErr } = await supabase
       .from('orders')
@@ -147,8 +151,11 @@ export async function GET() {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
+    if (!verifyAdminSession(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized: Admin authorization required' }, { status: 401 });
+    }
     // Purge all orders from store memory & Supabase DB
     store.purgeAllOrders();
     try {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
 import { supabase } from '@/lib/supabase';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -51,6 +52,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // 0. IP Rate Limit Guard (Max 15 order creation attempts per minute)
+    const rateLimit = checkRateLimit(request, 15, 60000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, message: 'Too many order requests. Please wait a minute before trying again.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const {
       customerName,
@@ -60,11 +70,9 @@ export async function POST(request: NextRequest) {
       pincode,
       fulfillmentType,
       items,
-      subtotal,
       shippingFee,
       discount,
       couponCode,
-      total,
       paymentProofUrl,
       paymentMethod
     } = body;
@@ -128,6 +136,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 2. Server-Side Price & Total Recalculation (Anti-Tampering Enforcement)
+    let calculatedSubtotal = 0;
+    for (const item of items) {
+      const prod = store.getProductById(item.product?.id) || item.product;
+      const unitPrice = Number(prod?.price || item.product?.price || 0);
+      calculatedSubtotal += unitPrice * Number(item.quantity || 1);
+    }
+    const cleanShipping = Number(shippingFee || 0);
+    const cleanDiscount = Number(discount || 0);
+    const calculatedTotal = Math.max(0, calculatedSubtotal + cleanShipping - cleanDiscount);
+
     const order = store.createOrder({
       customerName,
       customerPhone,
@@ -137,11 +156,11 @@ export async function POST(request: NextRequest) {
       fulfillmentType: fulfillmentType || 'parcel',
       paymentMethod: paymentMethod || 'online_upi',
       items,
-      subtotal: subtotal || 0,
-      shippingFee: shippingFee || 0,
-      discount: discount || 0,
+      subtotal: calculatedSubtotal,
+      shippingFee: cleanShipping,
+      discount: cleanDiscount,
       couponCode: couponCode || '',
-      total: total || 0,
+      total: calculatedTotal,
       paymentProofUrl: paymentProofUrl || ''
     });
 

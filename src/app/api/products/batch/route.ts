@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
 import { supabase } from '@/lib/supabase';
+import { verifyAdminSession } from '@/lib/auth-guard';
 
 export async function POST(request: NextRequest) {
   try {
+    if (!verifyAdminSession(request)) {
+      return NextResponse.json({ success: false, message: 'Unauthorized: Admin authorization required' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { action, ids, category, discountPercent } = body;
 

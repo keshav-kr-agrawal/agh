@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // IP Rate Limiting Guard (Max 20 uploads per minute per IP)
+    const rateLimit = checkRateLimit(request, 20, 60000);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, message: 'Too many upload attempts. Please wait a minute.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const image = body.image || body.file;
 
     if (!image) {
       return NextResponse.json({ success: false, message: 'No image file or data provided' }, { status: 400 });
+    }
+
+    // Payload size safety check (Max ~5MB string length)
+    if (typeof image === 'string' && image.length > 7000000) {
+      return NextResponse.json({ success: false, message: 'Image payload too large. Max 5MB allowed.' }, { status: 400 });
     }
 
     let cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'h0uczsof';

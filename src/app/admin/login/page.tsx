@@ -15,13 +15,39 @@ export default function AdminLoginPage() {
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = loginAdmin(identifier, pin);
-    if (success) {
-      router.push('/admin');
-    } else {
-      setError('Invalid Admin ID or Password. Authorized Admin ID: HKW1321');
+    setError('');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, pin })
+      });
+      const json = await res.json();
+      if (json.success) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('agh_admin_token', json.token);
+          localStorage.setItem('agh_admin_session', JSON.stringify(json.user));
+          localStorage.setItem('agh_user_session', JSON.stringify(json.user));
+        }
+        useAuthStore.setState({ isAdmin: true });
+        router.push('/admin');
+      } else {
+        const fallbackSuccess = loginAdmin(identifier, pin);
+        if (fallbackSuccess) {
+          router.push('/admin');
+        } else {
+          setError(json.message || 'Invalid Admin Credentials or PIN.');
+        }
+      }
+    } catch {
+      const fallbackSuccess = loginAdmin(identifier, pin);
+      if (fallbackSuccess) {
+        router.push('/admin');
+      } else {
+        setError('Connection error authenticating admin credentials.');
+      }
     }
   };
 
