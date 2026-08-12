@@ -2,20 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
 import { supabase } from '@/lib/supabase';
 
+let lastBannerUpdateTimestamp = 0;
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const cartTotal = searchParams.get('cartTotal') ? Number(searchParams.get('cartTotal')) : 0;
 
   try {
-    // 1. Sync live banner from Supabase DB if available
-    const { data: supaBanner } = await supabase.from('banner').select('*').limit(1).single();
-    if (supaBanner) {
-      store.updateBanner(
-        supaBanner.text || '🎉 Welcome to Anita Gift House!',
-        supaBanner.active !== false,
-        supaBanner.bg_gradient || 'from-crimson via-terracotta to-crimson'
-      );
+    // 1. Sync live banner from Supabase DB if not recently updated via POST
+    if (Date.now() - lastBannerUpdateTimestamp > 60000) {
+      const { data: supaBanner } = await supabase.from('banner').select('*').limit(1).single();
+      if (supaBanner && supaBanner.text) {
+        store.updateBanner(
+          supaBanner.text,
+          supaBanner.active !== false,
+          supaBanner.bg_gradient || supaBanner.bgGradient || 'from-crimson via-terracotta to-crimson'
+        );
+      }
     }
 
     // 2. Sync live coupons from Supabase DB if available
@@ -68,12 +72,13 @@ export async function POST(request: NextRequest) {
       const grad = bgGradient || banner?.bgGradient || 'from-crimson via-terracotta to-crimson';
 
       const updatedBanner = store.updateBanner(txt, act, grad);
+      lastBannerUpdateTimestamp = Date.now();
+
       try {
         await supabase.from('banner').upsert([{
-          id: updatedBanner.id,
+          id: updatedBanner.id || 'b1',
           text: updatedBanner.text,
-          active: updatedBanner.active,
-          bg_gradient: updatedBanner.bgGradient
+          active: updatedBanner.active
         }]);
       } catch (e) {
         console.error('Supabase banner upsert error:', e);
