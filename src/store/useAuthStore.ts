@@ -242,7 +242,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       try {
         const origin = typeof window !== 'undefined' && window.location.origin
           ? window.location.origin
-          : 'https://anitagifthouse.com';
+          : 'https://anita-gift-house.vercel.app';
         
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
