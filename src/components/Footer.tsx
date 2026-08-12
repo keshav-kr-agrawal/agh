@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
             </h4>
             <div className="flex items-start gap-2.5">
               <MapPin className="w-4 h-4 text-terracotta shrink-0 mt-0.5" />
-              <span>Anita Gift House, Main Market Chowk, Shop #14, Sector 15, New Delhi - 110001</span>
+              <span>Anita Gift House, Near Budhanath, Bhagalpur, Bihar - 812001</span>
             </div>
             {/* ONLY DISPLAY OFFICIAL ADMIN PHONE NUMBER +91 9199272836 */}
             <div className="flex items-center gap-2.5 p-3 bg-cream/10 rounded-2xl border border-gold/30">

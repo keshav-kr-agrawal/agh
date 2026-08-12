@@ -47,7 +47,7 @@ export const CartDrawer: React.FC = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [address, setAddress] = useState('');
-  const [pincode, setPincode] = useState('110001');
+  const [pincode, setPincode] = useState('812001');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('online_upi');
 
   // Gift Customization State
@@ -182,7 +182,7 @@ export const CartDrawer: React.FC = () => {
           customerPhone,
           customerEmail,
           address: fulfillmentType === 'handpicked' ? 'Anita Gift House Store Pickup (Handpicked)' : address,
-          pincode: fulfillmentType === 'handpicked' ? '110001' : pincode,
+          pincode: fulfillmentType === 'handpicked' ? '812001' : pincode,
           fulfillmentType,
           paymentMethod,
           items: cart,
@@ -495,7 +495,7 @@ export const CartDrawer: React.FC = () => {
                     <p className="font-bold flex items-center gap-1.5 text-xs">
                       <Store className="w-4 h-4" /> Handpicked Store Pickup Location
                     </p>
-                    <p className="text-[11px]">Anita Gift House, Main Market Chowk, Shop #14, Sector 15. Ready within 2 hours!</p>
+                    <p className="text-[11px]">Anita Gift House, Near Budhanath, Bhagalpur, Bihar - 812001. Ready within 2 hours!</p>
                   </div>
                 )}
 

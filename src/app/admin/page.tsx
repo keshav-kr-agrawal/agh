@@ -461,7 +461,7 @@ export default function AdminDashboardPage() {
       const res = await fetch('/api/shipping/rate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pincode: '110001', orderId })
+        body: JSON.stringify({ pincode: '812001', orderId })
       });
       const json = await res.json();
       if (json.success) {

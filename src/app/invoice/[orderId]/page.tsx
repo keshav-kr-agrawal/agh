@@ -113,7 +113,7 @@ export default function InvoicePage() {
                 Anita Gift House
               </h1>
               <p className="text-xs text-espresso/60">
-                Main Market Chowk, Shop #14, Sector 15, New Delhi - 110001
+                Near Budhanath, Bhagalpur, Bihar - 812001
               </p>
               <p className="text-xs text-espresso/80 font-mono font-bold mt-0.5">
                 Merchant Support: +91 9199272836
