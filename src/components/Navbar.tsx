@@ -69,6 +69,10 @@ export const Navbar: React.FC = () => {
     initializeAuth();
     fetchBanner();
 
+    const bannerTimer = setInterval(() => {
+      fetchBanner();
+    }, 8000);
+
     const unsubscribe = supabaseRealtime.subscribe(event => {
       if (event.table === 'banner') {
         fetchBanner();
@@ -83,6 +87,7 @@ export const Navbar: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
+      clearInterval(bannerTimer);
       unsubscribe();
       document.removeEventListener('mousedown', handleClickOutside);
     };

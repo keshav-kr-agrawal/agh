@@ -7,6 +7,38 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const cartTotal = searchParams.get('cartTotal') ? Number(searchParams.get('cartTotal')) : 0;
 
+  try {
+    // 1. Sync live banner from Supabase DB if available
+    const { data: supaBanner } = await supabase.from('banner').select('*').limit(1).single();
+    if (supaBanner) {
+      store.updateBanner(
+        supaBanner.text || '🎉 Welcome to Anita Gift House!',
+        supaBanner.active !== false,
+        supaBanner.bg_gradient || 'from-crimson via-terracotta to-crimson'
+      );
+    }
+
+    // 2. Sync live coupons from Supabase DB if available
+    const { data: supaCoupons } = await supabase.from('coupons').select('*');
+    if (supaCoupons && supaCoupons.length > 0) {
+      supaCoupons.forEach(c => {
+        store.upsertCoupon({
+          id: c.id,
+          code: c.code,
+          discountType: c.discount_type || 'percent',
+          discountValue: c.discount_value || 10,
+          minCartValue: c.min_cart_value || 0,
+          usageLimit: c.usage_limit || 100,
+          usageCount: c.usage_count || 0,
+          expiryDate: c.expiry_date || '2026-12-31',
+          active: c.active !== false
+        });
+      });
+    }
+  } catch (err) {
+    console.error('Supabase GET promotions error:', err);
+  }
+
   if (code) {
     const result = store.validateCoupon(code, cartTotal);
     return NextResponse.json({ success: result.valid, ...result });
@@ -54,8 +86,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, paymentSettings: updatedSettings });
     }
 
-    if (coupon) {
-      const updatedCoupon = store.upsertCoupon(coupon);
+    if (coupon || type === 'coupon') {
+      const targetCoupon = coupon || body;
+      const updatedCoupon = store.upsertCoupon(targetCoupon);
       try {
         await supabase.from('coupons').upsert([{
           id: updatedCoupon.id,
@@ -64,13 +97,14 @@ export async function POST(request: NextRequest) {
           discount_value: updatedCoupon.discountValue,
           min_cart_value: updatedCoupon.minCartValue,
           usage_limit: updatedCoupon.usageLimit,
+          usage_count: updatedCoupon.usageCount || 0,
           expiry_date: updatedCoupon.expiryDate,
           active: updatedCoupon.active
         }]);
       } catch (e) {
         console.error('Supabase coupon upsert error:', e);
       }
-      return NextResponse.json({ success: true, coupon: updatedCoupon });
+      return NextResponse.json({ success: true, coupon: updatedCoupon, coupons: store.getCoupons() });
     }
 
     return NextResponse.json({ success: false, message: 'Invalid payload' }, { status: 400 });
