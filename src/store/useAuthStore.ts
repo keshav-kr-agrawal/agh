@@ -240,11 +240,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
     loginWithGoogle: async () => {
       try {
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://anitagifthouse.com';
+        const origin = typeof window !== 'undefined' && window.location.origin
+          ? window.location.origin
+          : 'https://anitagifthouse.com';
+        
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${origin}/account`
+            redirectTo: `${origin}/account`,
+            skipBrowserRedirect: false
           }
         });
         if (error) {
