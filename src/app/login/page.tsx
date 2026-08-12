@@ -198,6 +198,7 @@ function LoginContent() {
             <input
               type="text"
               required
+              autoComplete="username"
               value={loginPhone}
               onChange={e => setLoginPhone(e.target.value)}
               placeholder="customer@example.com or +91 98765 43210"
@@ -213,6 +214,7 @@ function LoginContent() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="current-password"
                 value={loginPassword}
                 onChange={e => setLoginPassword(e.target.value)}
                 placeholder="Enter your account password"

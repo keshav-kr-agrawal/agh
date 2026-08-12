@@ -17,6 +17,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { Order } from '@/types';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { supabase } from '@/lib/supabase';
+import { UserSession } from '@/types';
 
 export default function CustomerAccountPage() {
   const router = useRouter();
@@ -24,16 +26,18 @@ export default function CustomerAccountPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCustomerOrders = async () => {
+  const fetchCustomerOrders = async (currentUser?: UserSession | null) => {
+    const activeUser = currentUser || user;
+    if (!activeUser) return;
     try {
       const res = await fetch(`/api/orders/create?all=true`);
       const json = await res.json();
       if (json.data) {
-        const userDigits = user!.phone.replace(/\D/g, '').slice(-10);
+        const userDigits = (activeUser.phone || '').replace(/\D/g, '').slice(-10);
         const filtered = json.data.filter((o: Order) => {
           const orderDigits = (o.customerPhone || '').replace(/\D/g, '').slice(-10);
-          const matchEmail = Boolean(user!.email && o.customerEmail && user!.email.toLowerCase() === o.customerEmail.toLowerCase());
-          return (userDigits && orderDigits === userDigits) || (o.customerName && o.customerName.trim().toLowerCase() === user!.name.trim().toLowerCase()) || matchEmail;
+          const matchEmail = Boolean(activeUser.email && o.customerEmail && activeUser.email.toLowerCase() === o.customerEmail.toLowerCase());
+          return (userDigits && orderDigits === userDigits) || (o.customerName && o.customerName.trim().toLowerCase() === activeUser.name.trim().toLowerCase()) || matchEmail;
         });
         setOrders(filtered);
       }
@@ -45,11 +49,37 @@ export default function CustomerAccountPage() {
   };
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    fetchCustomerOrders();
+    const resolveAuthAndOrders = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const supaUser = session.user;
+        const supaCustUser: UserSession = {
+          phone: supaUser.phone || supaUser.user_metadata?.phone_number || supaUser.email || '+91 9999999999',
+          name: supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || 'Customer',
+          email: supaUser.email || '',
+          role: 'customer'
+        };
+        useAuthStore.setState({ user: supaCustUser });
+        localStorage.setItem('agh_customer_session', JSON.stringify(supaCustUser));
+        fetchCustomerOrders(supaCustUser);
+        return;
+      }
+
+      if (!user) {
+        const savedCust = typeof window !== 'undefined' ? localStorage.getItem('agh_customer_session') : null;
+        if (savedCust) {
+          const parsed = JSON.parse(savedCust);
+          useAuthStore.setState({ user: parsed });
+          fetchCustomerOrders(parsed);
+        } else {
+          router.push('/login');
+        }
+      } else {
+        fetchCustomerOrders(user);
+      }
+    };
+
+    resolveAuthAndOrders();
   }, [user, router]);
 
   const handleCancelOrder = async (orderId: string) => {
