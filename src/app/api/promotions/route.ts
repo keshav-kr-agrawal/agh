@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, coupon, bannerText, bannerActive, paymentSettings, code, cartTotal } = body;
+    const { action, type, coupon, banner, bannerText, bannerActive, bgGradient, text, active, paymentSettings, code, cartTotal } = body;
 
     if (action === 'validate' || code) {
       const codeToValidate = code || (coupon && coupon.code);
@@ -30,13 +30,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: result.valid, ...result });
     }
 
-    if (action === 'updateBanner') {
-      const updatedBanner = store.updateBanner(bannerText, bannerActive);
+    if (action === 'updateBanner' || type === 'banner' || bannerText !== undefined || text !== undefined) {
+      const txt = text !== undefined ? text : (bannerText !== undefined ? bannerText : (banner?.text || ''));
+      const act = active !== undefined ? active : (bannerActive !== undefined ? bannerActive : (banner?.active ?? true));
+      const grad = bgGradient || banner?.bgGradient || 'from-crimson via-terracotta to-crimson';
+
+      const updatedBanner = store.updateBanner(txt, act, grad);
       try {
         await supabase.from('banner').upsert([{
           id: updatedBanner.id,
           text: updatedBanner.text,
-          active: updatedBanner.active
+          active: updatedBanner.active,
+          bg_gradient: updatedBanner.bgGradient
         }]);
       } catch (e) {
         console.error('Supabase banner upsert error:', e);

@@ -459,8 +459,13 @@ class DataStore {
     return this.banner;
   }
 
-  public updateBanner(text: string, active: boolean): StoreBanner {
-    this.banner = { ...this.banner, text, active };
+  public updateBanner(text: string, active: boolean, bgGradient?: string): StoreBanner {
+    this.banner = {
+      ...this.banner,
+      text,
+      active,
+      bgGradient: bgGradient || this.banner.bgGradient || 'from-crimson via-terracotta to-crimson'
+    };
 
     supabaseRealtime.notify({
       eventType: 'UPDATE',

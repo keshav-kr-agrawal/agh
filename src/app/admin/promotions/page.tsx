@@ -125,7 +125,10 @@ export default function AdminPromotionsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          action: 'updateBanner',
           type: 'banner',
+          bannerText: banner.text,
+          bannerActive: banner.active,
           text: banner.text,
           active: banner.active,
           bgGradient: banner.bgGradient
@@ -133,8 +136,13 @@ export default function AdminPromotionsPage() {
       });
       const json = await res.json();
       if (json.success) {
+        if (json.banner) {
+          setBanner(json.banner);
+        }
         alert('Top Announcement Banner updated successfully in real-time!');
         loadPromotionsData();
+      } else {
+        alert(json.message || 'Failed to update announcement banner');
       }
     } catch {
       alert('Failed to update announcement banner');
