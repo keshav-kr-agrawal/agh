@@ -32,7 +32,8 @@ export default function CustomerAccountPage() {
         const userDigits = user!.phone.replace(/\D/g, '').slice(-10);
         const filtered = json.data.filter((o: Order) => {
           const orderDigits = (o.customerPhone || '').replace(/\D/g, '').slice(-10);
-          return (userDigits && orderDigits === userDigits) || (o.customerName && o.customerName.trim().toLowerCase() === user!.name.trim().toLowerCase());
+          const matchEmail = Boolean(user!.email && o.customerEmail && user!.email.toLowerCase() === o.customerEmail.toLowerCase());
+          return (userDigits && orderDigits === userDigits) || (o.customerName && o.customerName.trim().toLowerCase() === user!.name.trim().toLowerCase()) || matchEmail;
         });
         setOrders(filtered);
       }
