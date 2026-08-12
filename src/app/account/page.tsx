@@ -49,38 +49,68 @@ export default function CustomerAccountPage() {
   };
 
   useEffect(() => {
-    const resolveAuthAndOrders = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const supaUser = session.user;
-        const supaCustUser: UserSession = {
-          phone: supaUser.phone || supaUser.user_metadata?.phone_number || supaUser.email || '+91 9999999999',
-          name: supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || 'Customer',
-          email: supaUser.email || '',
-          role: 'customer'
-        };
-        useAuthStore.setState({ user: supaCustUser });
-        localStorage.setItem('agh_customer_session', JSON.stringify(supaCustUser));
-        fetchCustomerOrders(supaCustUser);
-        return;
-      }
+    let isSubscribed = true;
 
-      if (!user) {
+    const syncUserSession = (supaUser: any) => {
+      const supaCustUser: UserSession = {
+        phone: supaUser.phone || supaUser.user_metadata?.phone_number || supaUser.email || '+91 9999999999',
+        name: supaUser.user_metadata?.full_name || supaUser.user_metadata?.name || supaUser.email?.split('@')[0] || 'Customer',
+        email: supaUser.email || '',
+        role: 'customer'
+      };
+      useAuthStore.setState({ user: supaCustUser });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('agh_customer_session', JSON.stringify(supaCustUser));
+      }
+      return supaCustUser;
+    };
+
+    const resolveAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const custUser = syncUserSession(session.user);
+          if (isSubscribed) fetchCustomerOrders(custUser);
+          return;
+        }
+
+        const storedUser = useAuthStore.getState().user;
+        if (storedUser) {
+          if (isSubscribed) fetchCustomerOrders(storedUser);
+          return;
+        }
+
         const savedCust = typeof window !== 'undefined' ? localStorage.getItem('agh_customer_session') : null;
         if (savedCust) {
           const parsed = JSON.parse(savedCust);
           useAuthStore.setState({ user: parsed });
-          fetchCustomerOrders(parsed);
-        } else {
+          if (isSubscribed) fetchCustomerOrders(parsed);
+          return;
+        }
+
+        if (isSubscribed) {
+          setLoading(false);
           router.push('/login');
         }
-      } else {
-        fetchCustomerOrders(user);
+      } catch (err) {
+        if (isSubscribed) setLoading(false);
       }
     };
 
-    resolveAuthAndOrders();
-  }, [user, router]);
+    resolveAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user && isSubscribed) {
+        const custUser = syncUserSession(session.user);
+        fetchCustomerOrders(custUser);
+      }
+    });
+
+    return () => {
+      isSubscribed = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   const handleCancelOrder = async (orderId: string) => {
     if (!confirm('Are you sure you want to cancel this order? Item stock will be restored immediately.')) {
@@ -105,7 +135,18 @@ export default function CustomerAccountPage() {
     }
   };
 
-  if (!user) return null;
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-cream text-espresso flex flex-col font-sans">
+        <Navbar />
+        <main className="flex-1 max-w-5xl mx-auto px-4 py-20 w-full flex flex-col items-center justify-center space-y-4">
+          <div className="w-12 h-12 border-4 border-terracotta border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-bold text-espresso/70">Authenticating your Customer Account...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream text-espresso flex flex-col font-sans">
