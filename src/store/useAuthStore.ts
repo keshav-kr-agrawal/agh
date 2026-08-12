@@ -17,6 +17,7 @@ interface AuthState {
   loginCustomer: (phone: string, name: string, email?: string, password?: string) => void;
   registerCustomer: (customer: { phone: string; name: string; email?: string; password?: string }) => void;
   loginWithPassword: (phone: string, password?: string) => { success: boolean; message: string; user?: UserSession };
+  loginWithGoogle: () => Promise<{ success: boolean; message?: string }>;
   getRegisteredCustomer: (phone: string) => RegisteredCustomer | null;
   loginAdmin: (identifier: string, pin: string) => boolean;
   updateAdminPin: (oldPin: string, newPin: string) => { success: boolean; message: string };
@@ -235,6 +236,24 @@ export const useAuthStore = create<AuthState>((set, get) => {
       set({ user: userSession });
 
       return { success: true, message: 'Logged in successfully!', user: userSession };
+    },
+
+    loginWithGoogle: async () => {
+      try {
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://anitagifthouse.com';
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${origin}/account`
+          }
+        });
+        if (error) {
+          return { success: false, message: error.message };
+        }
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, message: err?.message || 'Google Auth failed' };
+      }
     },
 
     loginAdmin: (identifier, pin) => {
