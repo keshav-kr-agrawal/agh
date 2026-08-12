@@ -209,6 +209,16 @@ export const CartDrawer: React.FC = () => {
         setCreatedOrderId(json.data.id);
         setUpiPayload(json.upiPayload || `upi://pay?pa=anitagifthouse@upi&pn=Anita%20Gift%20House&am=${total}&tn=Order%20${json.data.id}`);
 
+        if (typeof window !== 'undefined') {
+          try {
+            const myOrders = JSON.parse(localStorage.getItem('agh_my_order_ids') || '[]');
+            if (!myOrders.includes(json.data.id)) {
+              myOrders.unshift(json.data.id);
+              localStorage.setItem('agh_my_order_ids', JSON.stringify(myOrders));
+            }
+          } catch {}
+        }
+
         if (paymentMethod === 'pay_at_pickup') {
           // Pay at Pickup: Direct confirmation
           clearCart();

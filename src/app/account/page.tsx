@@ -27,18 +27,54 @@ export default function CustomerAccountPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchCustomerOrders = async (currentUser?: UserSession | null) => {
-    const activeUser = currentUser || user;
-    if (!activeUser) return;
+    const activeUser = currentUser || user || useAuthStore.getState().user;
     try {
       const res = await fetch(`/api/orders/create?all=true`);
       const json = await res.json();
-      if (json.data) {
-        const userDigits = (activeUser.phone || '').replace(/\D/g, '').slice(-10);
+      if (json.data && Array.isArray(json.data)) {
+        const userPhoneDigits = (activeUser?.phone || '').replace(/\D/g, '').slice(-10);
+        const userEmailClean = (activeUser?.email || '').trim().toLowerCase();
+        const userNameClean = (activeUser?.name || '').trim().toLowerCase();
+
+        let localOrderIds: string[] = [];
+        if (typeof window !== 'undefined') {
+          try {
+            localOrderIds = JSON.parse(localStorage.getItem('agh_my_order_ids') || '[]');
+          } catch {}
+        }
+
         const filtered = json.data.filter((o: Order) => {
-          const orderDigits = (o.customerPhone || '').replace(/\D/g, '').slice(-10);
-          const matchEmail = Boolean(activeUser.email && o.customerEmail && activeUser.email.toLowerCase() === o.customerEmail.toLowerCase());
-          return (userDigits && orderDigits === userDigits) || (o.customerName && o.customerName.trim().toLowerCase() === activeUser.name.trim().toLowerCase()) || matchEmail;
+          const orderPhoneDigits = (o.customerPhone || '').replace(/\D/g, '').slice(-10);
+          const orderEmailClean = (o.customerEmail || '').trim().toLowerCase();
+          const orderNameClean = (o.customerName || '').trim().toLowerCase();
+
+          // 1. Match by Email (Exact match)
+          if (userEmailClean && orderEmailClean && userEmailClean === orderEmailClean) {
+            return true;
+          }
+
+          // 2. Match by Valid 10-Digit Phone Number
+          if (userPhoneDigits.length >= 10 && orderPhoneDigits.length >= 10 && userPhoneDigits === orderPhoneDigits) {
+            return true;
+          }
+
+          // 3. Match by Customer Name (First or Full Name)
+          if (userNameClean && orderNameClean) {
+            const userFirstName = userNameClean.split(' ')[0];
+            const orderFirstName = orderNameClean.split(' ')[0];
+            if (userNameClean === orderNameClean || (userFirstName.length >= 3 && userFirstName === orderFirstName)) {
+              return true;
+            }
+          }
+
+          // 4. Match by Session Local Storage Placed Orders
+          if (localOrderIds.includes(o.id)) {
+            return true;
+          }
+
+          return false;
         });
+
         setOrders(filtered);
       }
     } catch (e) {
@@ -99,6 +135,13 @@ export default function CustomerAccountPage() {
 
     resolveAuth();
 
+    // Live 8-second polling for real-time order status changes
+    const pollInterval = setInterval(() => {
+      if (isSubscribed) {
+        fetchCustomerOrders();
+      }
+    }, 8000);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user && isSubscribed) {
         const custUser = syncUserSession(session.user);
@@ -108,6 +151,7 @@ export default function CustomerAccountPage() {
 
     return () => {
       isSubscribed = false;
+      clearInterval(pollInterval);
       subscription.unsubscribe();
     };
   }, [router]);
