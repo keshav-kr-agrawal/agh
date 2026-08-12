@@ -232,24 +232,26 @@ export const Navbar: React.FC = () => {
               </div>
 
               {/* Customer Auth Controls */}
-              {user && !isAdmin ? (
+              {mounted && user && !isAdmin ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <Link
                     href="/account"
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-bold bg-cream-muted border border-cream-border text-espresso hover:bg-cream-border transition shadow-xs"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-bold bg-cream-muted border border-cream-border text-espresso hover:bg-cream-border transition shadow-xs"
+                    title="View Account & Order History"
                   >
                     <User className="w-4 h-4 text-terracotta" />
-                    <span className="text-[11px] sm:text-xs">{user.name.split(' ')[0]}</span>
+                    <span className="text-[11px] sm:text-xs">Account ({user.name.split(' ')[0]})</span>
                   </Link>
                   <button
                     onClick={() => {
                       logout();
                       router.push('/login');
                     }}
-                    className="p-1.5 sm:p-2 rounded-full bg-cream-muted border border-cream-border text-espresso/70 hover:text-crimson transition"
-                    title="Log Out Session"
+                    className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-crimson/10 text-crimson border border-crimson/20 hover:bg-crimson hover:text-cream transition shadow-xs"
+                    title="Log Out Customer Session"
                   >
-                    <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Log Out</span>
                   </button>
                 </div>
               ) : (
@@ -258,7 +260,7 @@ export const Navbar: React.FC = () => {
                   className="flex items-center gap-1 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-terracotta text-cream hover:bg-crimson transition shadow-sm shrink-0"
                 >
                   <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold shrink-0" />
-                  <span>Login</span>
+                  <span>Log In</span>
                 </Link>
               )}
 
