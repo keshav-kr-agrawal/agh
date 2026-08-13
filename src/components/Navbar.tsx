@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
     searchQuery, 
     setSearchQuery 
   } = useStorefrontStore();
-  const { user, isAdmin, logout, initializeAuth } = useAuthStore();
+  const { user, isAdmin, logout, logoutAdmin, initializeAuth } = useAuthStore();
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,7 +56,7 @@ export const Navbar: React.FC = () => {
 
   const fetchBanner = async () => {
     try {
-      const res = await fetch('/api/promotions');
+      const res = await fetch(`/api/promotions?t=${Date.now()}`, { cache: 'no-store' });
       const json = await res.json();
       if (json.success && json.banner) {
         setBanner(json.banner);
@@ -71,7 +71,28 @@ export const Navbar: React.FC = () => {
 
     const bannerTimer = setInterval(() => {
       fetchBanner();
-    }, 8000);
+    }, 3000);
+
+    let broadcastChannel: BroadcastChannel | null = null;
+    try {
+      broadcastChannel = new BroadcastChannel('agh_banner_channel');
+      broadcastChannel.onmessage = (event) => {
+        if (event.data?.type === 'BANNER_UPDATED' && event.data?.banner) {
+          setBanner(event.data.banner);
+        } else {
+          fetchBanner();
+        }
+      };
+    } catch (e) {}
+
+    const handleBannerEvent = (e: any) => {
+      if (e.detail) {
+        setBanner(e.detail);
+      } else {
+        fetchBanner();
+      }
+    };
+    window.addEventListener('agh_banner_updated', handleBannerEvent);
 
     const unsubscribe = supabaseRealtime.subscribe(event => {
       if (event.table === 'banner') {
@@ -88,6 +109,8 @@ export const Navbar: React.FC = () => {
 
     return () => {
       clearInterval(bannerTimer);
+      if (broadcastChannel) broadcastChannel.close();
+      window.removeEventListener('agh_banner_updated', handleBannerEvent);
       unsubscribe();
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -231,8 +254,10 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
 
-              {/* Customer Auth Controls */}
-              {mounted && user && !isAdmin ? (
+              {/* Customer / Admin Auth Controls */}
+              {!mounted ? (
+                <div className="w-20 h-8" />
+              ) : user && !isAdmin ? (
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <Link
                     href="/account"
@@ -249,6 +274,28 @@ export const Navbar: React.FC = () => {
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-crimson/10 text-crimson border border-crimson/20 hover:bg-crimson hover:text-cream transition shadow-xs"
                     title="Log Out Customer Session"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              ) : isAdmin ? (
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-bold bg-espresso text-cream hover:bg-espresso/90 transition shadow-xs"
+                    title="Admin Control Center"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-gold" />
+                    <span className="text-[11px] sm:text-xs">Admin Dashboard</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logoutAdmin();
+                      router.push('/admin/login');
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-crimson/10 text-crimson border border-crimson/20 hover:bg-crimson hover:text-cream transition shadow-xs"
+                    title="Log Out Admin Session"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     <span>Log Out</span>
@@ -345,12 +392,23 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="pt-2 border-t border-cream-border flex items-center justify-between text-xs font-bold">
-              {user ? (
+              {user && !isAdmin ? (
                 <>
-                  <Link href={isAdmin ? '/admin' : '/account'} className="text-terracotta">
-                    My Account ({user.name.split(' ')[0]})
+                  <Link href="/account" className="text-terracotta flex items-center gap-1">
+                    <User className="w-4 h-4" /> My Account ({user.name.split(' ')[0]})
                   </Link>
-                  <button onClick={logout} className="text-crimson">Log Out</button>
+                  <button onClick={() => { logout(); router.push('/login'); }} className="text-crimson flex items-center gap-1">
+                    <LogOut className="w-3.5 h-3.5" /> Log Out
+                  </button>
+                </>
+              ) : isAdmin ? (
+                <>
+                  <Link href="/admin" className="text-espresso flex items-center gap-1 font-bold">
+                    <ShieldCheck className="w-4 h-4 text-gold" /> Admin Dashboard
+                  </Link>
+                  <button onClick={() => { logoutAdmin(); router.push('/admin/login'); }} className="text-crimson flex items-center gap-1 font-bold">
+                    <LogOut className="w-3.5 h-3.5" /> Log Out
+                  </button>
                 </>
               ) : (
                 <Link href="/login" className="text-terracotta font-bold flex items-center gap-1">

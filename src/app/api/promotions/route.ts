@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 let lastBannerUpdateTimestamp = 0;
 
@@ -12,8 +15,8 @@ export async function GET(request: NextRequest) {
   try {
     // 1. Sync live banner from Supabase DB if not recently updated via POST
     if (Date.now() - lastBannerUpdateTimestamp > 60000) {
-      const { data: supaBanner } = await supabase.from('banner').select('*').limit(1).single();
-      if (supaBanner && supaBanner.text) {
+      const { data: supaBanner, error: bannerErr } = await supabaseAdmin.from('banner').select('*').limit(1).single();
+      if (!bannerErr && supaBanner && supaBanner.text && supaBanner.text.trim().length > 0) {
         store.updateBanner(
           supaBanner.text,
           supaBanner.active !== false,
@@ -23,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Sync live coupons from Supabase DB if available
-    const { data: supaCoupons } = await supabase.from('coupons').select('*');
+    const { data: supaCoupons } = await supabaseAdmin.from('coupons').select('*');
     if (supaCoupons && supaCoupons.length > 0) {
       supaCoupons.forEach(c => {
         store.upsertCoupon({
@@ -45,13 +48,18 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const result = store.validateCoupon(code, cartTotal);
-    return NextResponse.json({ success: result.valid, ...result });
+    return NextResponse.json({ success: result.valid, ...result }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' }
+    });
   }
 
   const coupons = store.getCoupons();
   const banner = store.getBanner();
   const paymentSettings = store.getPaymentSettings();
-  return NextResponse.json({ success: true, coupons, banner, paymentSettings });
+  return NextResponse.json(
+    { success: true, coupons, banner, paymentSettings },
+    { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' } }
+  );
 }
 
 export async function POST(request: NextRequest) {
@@ -75,11 +83,15 @@ export async function POST(request: NextRequest) {
       lastBannerUpdateTimestamp = Date.now();
 
       try {
-        await supabase.from('banner').upsert([{
-          id: updatedBanner.id || 'b1',
+        const { error: supaErr } = await supabaseAdmin.from('banner').upsert([{
+          id: updatedBanner.id || 'b-1',
           text: updatedBanner.text,
-          active: updatedBanner.active
+          active: updatedBanner.active,
+          bg_gradient: updatedBanner.bgGradient
         }]);
+        if (supaErr) {
+          console.error('Supabase banner upsert warning:', supaErr.message);
+        }
       } catch (e) {
         console.error('Supabase banner upsert error:', e);
       }
@@ -95,7 +107,7 @@ export async function POST(request: NextRequest) {
       const targetCoupon = coupon || body;
       const updatedCoupon = store.upsertCoupon(targetCoupon);
       try {
-        await supabase.from('coupons').upsert([{
+        const { error: supaErr } = await supabaseAdmin.from('coupons').upsert([{
           id: updatedCoupon.id,
           code: updatedCoupon.code,
           discount_type: updatedCoupon.discountType,
@@ -106,14 +118,17 @@ export async function POST(request: NextRequest) {
           expiry_date: updatedCoupon.expiryDate,
           active: updatedCoupon.active
         }]);
+        if (supaErr) {
+          console.error('Supabase coupon upsert warning:', supaErr.message);
+        }
       } catch (e) {
         console.error('Supabase coupon upsert error:', e);
       }
-      return NextResponse.json({ success: true, coupon: updatedCoupon, coupons: store.getCoupons() });
+      return NextResponse.json({ success: true, coupon: updatedCoupon });
     }
 
-    return NextResponse.json({ success: false, message: 'Invalid payload' }, { status: 400 });
-  } catch (error) {
-    return NextResponse.json({ success: false, message: 'Promotions error' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'Invalid action' });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, message: err?.message || 'Server error' }, { status: 500 });
   }
 }

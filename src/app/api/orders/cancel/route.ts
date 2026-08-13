@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAdminSession } from '@/lib/auth-guard';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (action === 'delete') {
       const deleted = store.deleteOrder(orderId);
       try {
-        await supabase.from('orders').delete().eq('id', orderId);
+        await supabaseAdmin.from('orders').delete().eq('id', orderId);
       } catch (e) {
         console.error('Supabase DB delete order error:', e);
       }
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const result = store.cancelOrder(orderId);
     try {
-      await supabase.from('orders').update({
+      await supabaseAdmin.from('orders').update({
         payment_status: 'CANCELLED',
         order_stage: 'CANCELLED',
         admin_notes: 'Cancelled by Customer'

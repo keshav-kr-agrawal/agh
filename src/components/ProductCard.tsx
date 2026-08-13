@@ -91,6 +91,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <SvgProductPlaceholder category={product.category} title={product.title} />
         )}
 
+        {/* Multi-Photo Count Badge */}
+        {product.images && product.images.length > 1 && (
+          <div className="absolute bottom-3 left-3 z-10 px-2 py-0.5 bg-espresso/70 backdrop-blur-xs text-cream text-[10px] font-bold font-mono rounded-md flex items-center gap-1 shadow">
+            📷 {product.images.length} Photos
+          </div>
+        )}
+
         {/* Quick View Hover Overlay */}
         <div className="absolute inset-0 bg-espresso/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button

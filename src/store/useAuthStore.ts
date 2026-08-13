@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { UserSession } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { supabase, sendEmailOtp as sendEmailOtpHelper, verifyEmailOtp as verifyEmailOtpHelper } from '@/lib/supabase';
 
 interface RegisteredCustomer {
   phone: string;
@@ -17,7 +17,8 @@ interface AuthState {
   loginCustomer: (phone: string, name: string, email?: string, password?: string) => void;
   registerCustomer: (customer: { phone: string; name: string; email?: string; password?: string }) => void;
   loginWithPassword: (phone: string, password?: string) => { success: boolean; message: string; user?: UserSession };
-  loginWithGoogle: () => Promise<{ success: boolean; message?: string }>;
+  sendEmailOtp: (email: string) => Promise<{ success: boolean; message?: string }>;
+  verifyEmailOtp: (email: string, token: string) => Promise<{ success: boolean; message?: string; user?: UserSession }>;
   getRegisteredCustomer: (phone: string) => RegisteredCustomer | null;
   loginAdmin: (identifier: string, pin: string) => boolean;
   updateAdminPin: (oldPin: string, newPin: string) => { success: boolean; message: string };
@@ -97,7 +98,6 @@ export const useAuthStore = create<AuthState>((set, get) => {
           const savedCust = localStorage.getItem('agh_customer_session');
           const legacySaved = localStorage.getItem('agh_user_session');
 
-          const hasAdmin = Boolean(savedAdmin) || (legacySaved ? JSON.parse(legacySaved)?.role === 'admin' : false);
           let custUser: UserSession | null = null;
           if (savedCust) {
             custUser = JSON.parse(savedCust);
@@ -105,7 +105,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
             custUser = JSON.parse(legacySaved);
           }
 
-          set({ user: custUser, isAdmin: hasAdmin });
+          const hasAdmin = Boolean(savedAdmin) && !custUser;
+          const activeUser = custUser || (hasAdmin && savedAdmin ? JSON.parse(savedAdmin) : null);
+
+          set({ user: activeUser, isAdmin: hasAdmin });
 
           // Supabase Auth Sync
           supabase.auth.getSession().then(({ data: { session } }) => {
@@ -162,10 +165,11 @@ export const useAuthStore = create<AuthState>((set, get) => {
         role: 'customer'
       };
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('agh_admin_session');
         localStorage.setItem('agh_customer_session', JSON.stringify(userSession));
         localStorage.setItem('agh_user_session', JSON.stringify(userSession));
       }
-      set({ user: userSession });
+      set({ user: userSession, isAdmin: false });
     },
 
     loginCustomer: (phone, name, email, password) => {
@@ -184,10 +188,11 @@ export const useAuthStore = create<AuthState>((set, get) => {
         role: 'customer'
       };
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('agh_admin_session');
         localStorage.setItem('agh_customer_session', JSON.stringify(userSession));
         localStorage.setItem('agh_user_session', JSON.stringify(userSession));
       }
-      set({ user: userSession });
+      set({ user: userSession, isAdmin: false });
     },
 
     loginWithPassword: (identifier, password) => {
@@ -230,34 +235,63 @@ export const useAuthStore = create<AuthState>((set, get) => {
       };
 
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('agh_admin_session');
         localStorage.setItem('agh_customer_session', JSON.stringify(userSession));
         localStorage.setItem('agh_user_session', JSON.stringify(userSession));
       }
-      set({ user: userSession });
+      set({ user: userSession, isAdmin: false });
 
       return { success: true, message: 'Logged in successfully!', user: userSession };
     },
 
-    loginWithGoogle: async () => {
-      try {
-        const origin = typeof window !== 'undefined' && window.location.origin
-          ? window.location.origin
-          : 'https://anita-gift-house.vercel.app';
-        
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${origin}/account`,
-            skipBrowserRedirect: false
-          }
-        });
-        if (error) {
-          return { success: false, message: error.message };
-        }
-        return { success: true };
-      } catch (err: any) {
-        return { success: false, message: err?.message || 'Google Auth failed' };
+    sendEmailOtp: async (email: string) => {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('agh_admin_session');
       }
+      set({ isAdmin: false });
+      const res = await sendEmailOtpHelper(email);
+      if (!res.success) {
+        return { success: false, message: res.error || 'Failed to send OTP' };
+      }
+      return { success: true, message: 'OTP sent successfully to your email!' };
+    },
+
+    verifyEmailOtp: async (email: string, token: string) => {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('agh_admin_session');
+      }
+      set({ isAdmin: false });
+      const res = await verifyEmailOtpHelper(email, token);
+      if (!res.success) {
+        return { success: false, message: res.error || 'Invalid OTP code' };
+      }
+
+      const supaUser = res.data?.user;
+      const userEmail = email.trim().toLowerCase();
+      const userName = supaUser?.user_metadata?.full_name || supaUser?.user_metadata?.name || userEmail.split('@')[0] || 'Customer';
+      const userPhone = supaUser?.phone || supaUser?.user_metadata?.phone_number || '+91 9999999999';
+
+      const userSession: UserSession = {
+        phone: userPhone,
+        name: userName,
+        email: userEmail,
+        role: 'customer'
+      };
+
+      saveRegisteredCustomer({
+        phone: userPhone,
+        name: userName,
+        email: userEmail,
+        createdAt: new Date().toISOString()
+      });
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('agh_customer_session', JSON.stringify(userSession));
+        localStorage.setItem('agh_user_session', JSON.stringify(userSession));
+      }
+      set({ user: userSession, isAdmin: false });
+
+      return { success: true, message: 'OTP verified successfully! Logged in.', user: userSession };
     },
 
     loginAdmin: (identifier, pin) => {
@@ -276,7 +310,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
           localStorage.setItem('agh_admin_session', JSON.stringify(adminUser));
           localStorage.setItem('agh_user_session', JSON.stringify(adminUser));
         }
-        set({ isAdmin: true });
+        set({ isAdmin: true, user: adminUser });
         return true;
       }
 

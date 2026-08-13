@@ -74,7 +74,7 @@ export default function AdminPromotionsPage() {
     setLoading(true);
     try {
       const [promoRes, prodRes] = await Promise.all([
-        fetch('/api/promotions'),
+        fetch(`/api/promotions?t=${Date.now()}`, { cache: 'no-store' }),
         fetch('/api/products')
       ]);
 
@@ -138,6 +138,14 @@ export default function AdminPromotionsPage() {
       if (json.success) {
         if (json.banner) {
           setBanner(json.banner);
+        }
+        if (typeof window !== 'undefined') {
+          try {
+            const channel = new BroadcastChannel('agh_banner_channel');
+            channel.postMessage({ type: 'BANNER_UPDATED', banner: json.banner });
+            channel.close();
+          } catch (e) {}
+          window.dispatchEvent(new CustomEvent('agh_banner_updated', { detail: json.banner }));
         }
         alert('Top Announcement Banner updated successfully in real-time!');
         loadPromotionsData();

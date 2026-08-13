@@ -2,9 +2,17 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://jhdxtpbyawubsvzacffz.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpoZHh0cGJ5YXd1YnN2emFjZmZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYxNTYwNzcsImV4cCI6MjEwMTczMjA3N30._FYWIe1dOYIdsoYKxuJlLDa2uTsY9fX4YYVpxcvM4AE';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
-// Official Supabase Client Instance
+// Official Supabase Client Instance (Client-side / Anon)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Admin Client Instance for Server API Routes (Service Role Key bypasses RLS)
+export const supabaseAdmin = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+  : supabase;
 
 export interface SupabaseRealtimeEvent<T = any> {
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
@@ -39,25 +47,49 @@ class SupabaseRealtimeManager {
 export const supabaseRealtime = new SupabaseRealtimeManager();
 
 /**
- * Trigger Real Supabase Google OAuth Flow
+ * Trigger Real Supabase Email OTP Send Flow
  */
-export async function signInWithGoogle() {
-  if (typeof window === 'undefined') return;
-  
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
+export async function sendEmailOtp(email: string) {
+  const cleanEmail = email.trim().toLowerCase();
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email: cleanEmail,
     options: {
-      redirectTo: `${window.location.origin}/account`
+      shouldCreateUser: true
     }
   });
 
   if (error) {
-    let friendlyMessage = error.message;
-    if (error.message.includes('provider is not enabled') || error.message.includes('validation_failed')) {
-      friendlyMessage = 'Google Auth provider is not enabled in your Supabase Dashboard yet. Please go to Supabase Dashboard -> Authentication -> Providers -> Google and toggle Enabled to ON.';
+    let msg = error.message;
+    if (msg.toLowerCase().includes('rate limit')) {
+      msg = 'Too many OTP requests. Please wait a minute before requesting another OTP.';
+    } else if (msg.toLowerCase().includes('invalid')) {
+      msg = 'Invalid email format. Please check and try again.';
     }
-    console.error('Google Sign In Error:', friendlyMessage);
-    return { success: false, error: friendlyMessage };
+    return { success: false, error: msg };
+  }
+
+  return { success: true, data };
+}
+
+/**
+ * Trigger Real Supabase Email OTP Verification Flow
+ */
+export async function verifyEmailOtp(email: string, token: string) {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanToken = token.trim();
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: cleanEmail,
+    token: cleanToken,
+    type: 'email'
+  });
+
+  if (error) {
+    let msg = error.message;
+    if (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid')) {
+      msg = 'Invalid or expired OTP code. Please check your email or click Resend OTP.';
+    }
+    return { success: false, error: msg };
   }
 
   return { success: true, data };

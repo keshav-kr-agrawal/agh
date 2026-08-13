@@ -16,7 +16,13 @@ import {
   Plus,
   Camera,
   Save,
-  X
+  X,
+  Upload,
+  ArrowUp,
+  ArrowDown,
+  Star,
+  Image as ImageIcon,
+  Loader2
 } from 'lucide-react';
 import { Product, Category } from '@/types';
 import { CameraCaptureModal } from '@/components/CameraCaptureModal';
@@ -39,8 +45,43 @@ export default function BatchProductsAdminPage() {
     }
   }, [isAdmin, router]);
 
-  // Camera Capture Modal State
+  // Camera Capture & Image Upload State
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
+
+  const handleMultipleFilesUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files).slice(0, 5);
+    if (fileArray.length === 0) return;
+
+    setUploadingCount(fileArray.length);
+    const newUrls: string[] = [];
+
+    for (const file of fileArray) {
+      try {
+        const url = await uploadToCloudinary(file);
+        if (url) newUrls.push(url);
+      } catch (err) {
+        console.error('Failed uploading photo:', err);
+      } finally {
+        setUploadingCount(prev => Math.max(0, prev - 1));
+      }
+    }
+
+    if (newUrls.length > 0) {
+      setEditingProduct(prev => ({
+        ...prev,
+        images: [...(prev.images || []), ...newUrls]
+      }));
+    }
+  };
+
+  const moveImage = (fromIdx: number, toIdx: number) => {
+    if (!editingProduct.images) return;
+    const updated = [...editingProduct.images];
+    const [moved] = updated.splice(fromIdx, 1);
+    updated.splice(toIdx, 0, moved);
+    setEditingProduct(prev => ({ ...prev, images: updated }));
+  };
 
   // New/Edit Product Form State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -568,62 +609,134 @@ export default function BatchProductsAdminPage() {
                 />
               </div>
 
-              {/* Media Upload & Camera Snap Trigger */}
-              <div className="space-y-2">
-                <label className="block font-bold text-espresso">Product Photos & Device Camera</label>
-                <div className="flex items-center gap-3">
+              {/* Media Upload & Camera Snap Trigger (Multi-Photo Support: 2-3 Pics) */}
+              <div className="space-y-3 p-4 bg-cream-muted rounded-2xl border border-cream-border">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-espresso flex items-center gap-1.5 text-xs">
+                    <ImageIcon className="w-4 h-4 text-terracotta" /> 
+                    Product Photos (Upload 2-3 Photos for E-Commerce Preview)
+                  </label>
+                  <span className="text-[11px] font-bold text-terracotta font-mono bg-terracotta/10 px-2 py-0.5 rounded-full">
+                    {editingProduct.images?.length || 0} / 3-5 Uploaded
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setIsCameraOpen(true)}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-crimson text-cream rounded-xl text-xs font-bold hover:bg-crimson-dark transition shadow"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-crimson text-cream rounded-xl text-xs font-bold hover:bg-crimson-dark transition shadow"
                   >
-                    <Camera className="w-4 h-4 text-gold" /> Snap Live Camera Photo
+                    <Camera className="w-4 h-4 text-gold" /> Snap Camera
                   </button>
 
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async e => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const uploadedUrl = await uploadToCloudinary(file);
-                        if (uploadedUrl) {
-                          setEditingProduct(prev => ({
-                            ...prev,
-                            images: [uploadedUrl, ...(prev.images || [])]
-                          }));
+                  <label className="flex items-center gap-1.5 px-3.5 py-2 bg-terracotta text-cream rounded-xl text-xs font-bold hover:bg-crimson transition shadow cursor-pointer">
+                    <Upload className="w-4 h-4" /> Upload 2-3 Photos
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={e => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          handleMultipleFilesUpload(e.target.files);
                         }
-                      }
-                    }}
-                    className="text-xs text-espresso/70 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cream-muted file:text-espresso"
-                  />
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {uploadingCount > 0 && (
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-terracotta animate-pulse">
+                      <Loader2 className="w-4 h-4 animate-spin text-crimson" /> 
+                      Uploading to Cloudinary...
+                    </span>
+                  )}
                 </div>
 
-                {/* Photo Previews */}
-                {editingProduct.images && editingProduct.images.length > 0 && (
-                  <div className="flex items-center gap-2 pt-2 overflow-x-auto">
+                <p className="text-[11px] text-espresso/60">
+                  Select 2-3 high resolution pictures. First picture is set as <strong>Cover Image</strong>. You can re-order or remove photos anytime.
+                </p>
+
+                {/* 2-3 Photo Grid Cards */}
+                {editingProduct.images && editingProduct.images.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                     {editingProduct.images.map((img, idx) => (
-                      <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-cream-border shrink-0">
-                        <img src={img} alt="Photo" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const targetImg = editingProduct.images?.[idx];
-                            if (targetImg) {
-                              deleteFromCloudinary(targetImg);
-                            }
-                            setEditingProduct(prev => ({
-                              ...prev,
-                              images: prev.images?.filter((_, i) => i !== idx)
-                            }));
-                          }}
-                          className="absolute top-0.5 right-0.5 p-0.5 bg-crimson text-cream rounded-full hover:scale-110 transition"
-                          title="Delete photo from Cloudinary"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                      <div 
+                        key={idx} 
+                        className={`relative rounded-xl overflow-hidden border-2 bg-cream group transition ${
+                          idx === 0 ? 'border-terracotta ring-2 ring-terracotta/20 shadow-md' : 'border-cream-border'
+                        }`}
+                      >
+                        <div className="aspect-square w-full relative">
+                          <img src={img} alt={`Slot ${idx + 1}`} className="w-full h-full object-cover" />
+                          <span className={`absolute top-1.5 left-1.5 text-[9px] font-bold uppercase px-2 py-0.5 rounded-md backdrop-blur-md ${
+                            idx === 0 ? 'bg-terracotta text-cream font-mono' : 'bg-espresso/75 text-cream'
+                          }`}>
+                            {idx === 0 ? '★ Cover Image' : `Photo ${idx + 1}`}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const targetImg = editingProduct.images?.[idx];
+                              if (targetImg) {
+                                deleteFromCloudinary(targetImg);
+                              }
+                              setEditingProduct(prev => ({
+                                ...prev,
+                                images: prev.images?.filter((_, i) => i !== idx)
+                              }));
+                            }}
+                            className="absolute top-1.5 right-1.5 p-1 bg-crimson text-cream rounded-full hover:scale-110 transition shadow"
+                            title="Delete photo from Cloudinary"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Order Controls */}
+                        <div className="p-1.5 bg-cream-muted border-t border-cream-border flex items-center justify-between text-[10px]">
+                          {idx !== 0 ? (
+                            <button
+                              type="button"
+                              onClick={() => moveImage(idx, 0)}
+                              className="text-terracotta font-bold hover:underline flex items-center gap-0.5"
+                            >
+                              <Star className="w-3 h-3 fill-current text-gold" /> Make Cover
+                            </button>
+                          ) : (
+                            <span className="text-emerald-700 font-bold">Primary</span>
+                          )}
+
+                          <div className="flex items-center gap-1">
+                            {idx > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => moveImage(idx, idx - 1)}
+                                className="p-1 bg-cream rounded hover:bg-cream-border transition"
+                                title="Move Left/Up"
+                              >
+                                <ArrowUp className="w-3 h-3" />
+                              </button>
+                            )}
+                            {idx < (editingProduct.images?.length || 0) - 1 && (
+                              <button
+                                type="button"
+                                onClick={() => moveImage(idx, idx + 1)}
+                                className="p-1 bg-cream rounded hover:bg-cream-border transition"
+                                title="Move Right/Down"
+                              >
+                                <ArrowDown className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-cream-border rounded-xl p-4 text-center text-xs text-espresso/50">
+                    No images uploaded yet. Click <strong>Upload 2-3 Photos</strong> or <strong>Snap Camera</strong> to add product photos to Cloudinary.
                   </div>
                 )}
               </div>

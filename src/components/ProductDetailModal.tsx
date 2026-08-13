@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { 
   X, 
   Star, 
@@ -12,19 +13,20 @@ import {
   Flame, 
   Sparkles,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight
+  Share2,
+  Copy,
+  ExternalLink,
+  MessageCircle
 } from 'lucide-react';
 import { useStorefrontStore } from '@/store/useStorefrontStore';
 import { useCartStore } from '@/store/useCartStore';
-import { getOptimizedImageUrl } from '@/lib/cloudinary';
-import { SvgProductPlaceholder } from './SvgProductPlaceholder';
+import { ProductImageGallery } from './ProductImageGallery';
 
 export const ProductDetailModal: React.FC = () => {
   const { selectedProduct, setSelectedProduct } = useStorefrontStore();
   const { addToCart, toggleWishlist, isInWishlist } = useCartStore();
 
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState('');
   const [pincodeStatus, setPincodeStatus] = useState<{
@@ -39,10 +41,35 @@ export const ProductDetailModal: React.FC = () => {
 
   const isWishlisted = isInWishlist(selectedProduct.id);
   const isOutOfStock = selectedProduct.stock <= 0;
+  const productUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/product/${selectedProduct.id}`
+    : `/product/${selectedProduct.id}`;
 
-  const images = selectedProduct.images && selectedProduct.images.length > 0
-    ? selectedProduct.images
-    : ['https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80'];
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: selectedProduct.title,
+          text: `Check out ${selectedProduct.title} on Anita Gift House for ₹${selectedProduct.price}!`,
+          url: productUrl
+        });
+        return;
+      } catch (e) {}
+    }
+    // Fallback to copy link
+    try {
+      await navigator.clipboard.writeText(productUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (e) {
+      alert(`Product link: ${productUrl}`);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const text = encodeURIComponent(`*${selectedProduct.title}*\nPrice: ₹${selectedProduct.price}\nCheck it out here: ${productUrl}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
 
   const handlePincodeCheck = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,63 +112,63 @@ export const ProductDetailModal: React.FC = () => {
           <span className="font-serif font-bold text-xs sm:text-sm text-espresso line-clamp-1">
             {selectedProduct.title}
           </span>
-          <button
-            onClick={() => setSelectedProduct(null)}
-            className="p-1.5 rounded-full bg-cream-muted text-espresso hover:bg-crimson hover:text-cream transition border border-cream-border shrink-0 ml-2"
-            title="Close Product Preview"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/product/${selectedProduct.id}`}
+              onClick={() => setSelectedProduct(null)}
+              className="px-2.5 py-1 rounded-xl bg-terracotta/10 text-terracotta hover:bg-terracotta hover:text-cream text-xs font-bold transition flex items-center gap-1"
+              title="Open full product page"
+            >
+              <ExternalLink className="w-3.5 h-3.5" /> Full Page
+            </Link>
+            <button
+              onClick={() => setSelectedProduct(null)}
+              className="p-1.5 rounded-full bg-cream-muted text-espresso hover:bg-crimson hover:text-cream transition border border-cream-border shrink-0"
+              title="Close Product Preview"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Multi-Photo Carousel (Mobile Constrained max-h-[260px]) */}
+          {/* E-Commerce Multi-Photo Gallery Preview */}
           <div className="p-4 sm:p-6 bg-cream-muted border-b md:border-b-0 md:border-r border-cream-border flex flex-col justify-between">
-            <div className="relative w-full aspect-square max-h-[260px] sm:max-h-[380px] rounded-2xl overflow-hidden border border-cream-border shadow-inner group mx-auto bg-cream">
-              {images.length > 0 && getOptimizedImageUrl(images[activeImageIndex]) ? (
-                <img
-                  src={getOptimizedImageUrl(images[activeImageIndex], { width: 800, height: 800 })}
-                  alt={selectedProduct.title}
-                  className="w-full h-full object-contain p-2"
-                />
-              ) : (
-                <SvgProductPlaceholder category={selectedProduct.category} title={selectedProduct.title} />
-              )}
+            <ProductImageGallery
+              images={selectedProduct.images}
+              title={selectedProduct.title}
+              category={selectedProduct.category}
+              compact
+            />
 
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-cream/90 text-espresso hover:bg-cream transition shadow-md"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setActiveImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-cream/90 text-espresso hover:bg-cream transition shadow-md"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Thumbnail Row */}
-            {images.length > 1 && (
-              <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-1">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition shrink-0 ${
-                      idx === activeImageIndex ? 'border-terracotta scale-105' : 'border-transparent opacity-70'
-                    }`}
-                  >
-                    <img src={img} alt="Thumb" className="w-full h-full object-cover" />
-                  </button>
-                ))}
+            {/* Quick Share Buttons beneath Gallery */}
+            <div className="mt-4 pt-3 border-t border-cream-border flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold text-espresso/60 uppercase tracking-wider">
+                Share Item:
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleWhatsAppShare}
+                  className="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-cream text-[11px] font-bold rounded-xl transition flex items-center gap-1 shadow-xs"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="px-2.5 py-1.5 bg-cream border border-cream-border hover:bg-terracotta hover:text-cream text-espresso text-[11px] font-bold rounded-xl transition flex items-center gap-1 shadow-xs"
+                >
+                  {copiedLink ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-3.5 h-3.5 text-terracotta" /> Copy Link
+                    </>
+                  )}
+                </button>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Details & Lookup Column */}

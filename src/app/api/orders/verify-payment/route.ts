@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAdminSession } from '@/lib/auth-guard';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await supabase.from('orders').update({
+      await supabaseAdmin.from('orders').update({
         payment_status: targetStatus,
         amount_paid: amountPaid !== undefined ? amountPaid : updatedOrder.amountPaid,
         admin_discount_adjustment: updatedOrder.adminDiscountAdjustment || 0,

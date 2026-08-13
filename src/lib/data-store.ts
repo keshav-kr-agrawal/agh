@@ -1,5 +1,7 @@
 import { Product, Order, FinancialMetrics, Coupon, StoreBanner, MonthlyFinancialSummary, Category, OverheadExpense, PaymentStatus, PaymentSettings } from '@/types';
 import { supabase, supabaseRealtime } from './supabase';
+import fs from 'fs';
+import path from 'path';
 
 // Initial Seed Products (Clean slate - no dummy data)
 const initialProducts: Product[] = [];
@@ -18,6 +20,37 @@ const initialBanner: StoreBanner = {
   bgGradient: 'from-crimson via-terracotta to-crimson'
 };
 
+const BANNER_FILE_PATH = path.join(process.cwd(), 'public', 'data', 'banner.json');
+
+function loadPersistedBanner(): StoreBanner {
+  try {
+    if (typeof window === 'undefined' && fs.existsSync(BANNER_FILE_PATH)) {
+      const raw = fs.readFileSync(BANNER_FILE_PATH, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.text) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load persisted banner:', err);
+  }
+  return initialBanner;
+}
+
+function savePersistedBanner(banner: StoreBanner) {
+  try {
+    if (typeof window === 'undefined') {
+      const dir = path.dirname(BANNER_FILE_PATH);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(BANNER_FILE_PATH, JSON.stringify(banner, null, 2), 'utf-8');
+    }
+  } catch (err) {
+    console.error('Failed to save persisted banner:', err);
+  }
+}
+
 // Initial Orders
 const initialOrders: Order[] = [];
 
@@ -32,7 +65,7 @@ class DataStore {
   private orders: Order[] = [...initialOrders];
   private coupons: Coupon[] = [...initialCoupons];
   private overheads: OverheadExpense[] = [...initialOverheads];
-  private banner: StoreBanner = { ...initialBanner };
+  private banner: StoreBanner = loadPersistedBanner();
   private paymentSettings: PaymentSettings = { ...initialPaymentSettings };
   private monthlySummaries: MonthlyFinancialSummary[] = [];
 
@@ -466,6 +499,8 @@ class DataStore {
       active,
       bgGradient: bgGradient || this.banner.bgGradient || 'from-crimson via-terracotta to-crimson'
     };
+
+    savePersistedBanner(this.banner);
 
     supabaseRealtime.notify({
       eventType: 'UPDATE',

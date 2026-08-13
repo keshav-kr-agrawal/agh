@@ -45,7 +45,7 @@
            ┌────────────────────────────┼────────────────────────────┐
            ▼                            ▼                            ▼
 ┌─────────────────────┐      ┌─────────────────────┐      ┌─────────────────────┐
-│ 🛍️ Customer Store   │      │ 🎁 Gift Customizer  │      │ 🏪 Merchant POS     │
+│ 🛍️ Customer Store   │      │ 🎁 Gift Customizer   │      │ 🏪 Merchant POS     │
 │  Fast Catalog & Cart│      │  Personal Note & Box│      │  Instant Counter Sale│
 └─────────────────────┘      └─────────────────────┘      └─────────────────────┘
            │                            │                            │

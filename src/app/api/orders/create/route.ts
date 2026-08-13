@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { checkRateLimit } from '@/lib/rate-limit';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const customerPhone = searchParams.get('customerPhone') || undefined;
 
   try {
-    let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
+    let query = supabaseAdmin.from('orders').select('*').order('created_at', { ascending: false });
     if (customerPhone) {
       query = query.eq('customer_phone', customerPhone);
     }
@@ -128,7 +131,7 @@ export async function POST(request: NextRequest) {
       const prodId = item.product?.id;
       if (prodId) {
         try {
-          const { data: supaProd } = await supabase.from('products').select('title, stock').eq('id', prodId).single();
+          const { data: supaProd } = await supabaseAdmin.from('products').select('title, stock').eq('id', prodId).single();
           if (supaProd) {
             const liveStock = Number(supaProd.stock !== undefined ? supaProd.stock : 0);
             if (liveStock <= 0 || liveStock < requestedQty) {
@@ -185,7 +188,7 @@ export async function POST(request: NextRequest) {
     // 2. Synchronous/Async Inventory Deduction & Supabase DB Insert
     (async () => {
       try {
-        await supabase.from('orders').insert([{
+        await supabaseAdmin.from('orders').insert([{
           id: order.id,
           customer_name: order.customerName,
           customer_phone: order.customerPhone,
@@ -220,11 +223,11 @@ export async function POST(request: NextRequest) {
         for (const item of items) {
           const prodId = item.product?.id;
           if (prodId) {
-            const { data: supaProd } = await supabase.from('products').select('stock').eq('id', prodId).single();
+            const { data: supaProd } = await supabaseAdmin.from('products').select('stock').eq('id', prodId).single();
             if (supaProd) {
               const currentStock = Number(supaProd.stock || 0);
               const newStock = Math.max(0, currentStock - item.quantity);
-              await supabase.from('products').update({ stock: newStock }).eq('id', prodId);
+              await supabaseAdmin.from('products').update({ stock: newStock }).eq('id', prodId);
             }
           }
         }

@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAdminSession } from '@/lib/auth-guard';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +22,7 @@ export async function POST(request: NextRequest) {
     if (action === 'delete') {
       const result = store.batchUpdateProducts(ids, { delete: true });
       try {
-        await supabase.from('products').delete().in('id', ids);
+        await supabaseAdmin.from('products').delete().in('id', ids);
       } catch (e) {
         console.error('Supabase batch delete error:', e);
       }
@@ -29,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (action === 'updateCategory' && category) {
       const result = store.batchUpdateProducts(ids, { category });
       try {
-        await supabase.from('products').update({ category }).in('id', ids);
+        await supabaseAdmin.from('products').update({ category }).in('id', ids);
       } catch (e) {
         console.error('Supabase batch category update error:', e);
       }
@@ -42,7 +45,7 @@ export async function POST(request: NextRequest) {
       const updatedItems = currentProds.filter(p => ids.includes(p.id));
       for (const p of updatedItems) {
         try {
-          await supabase.from('products').update({ price: p.price }).eq('id', p.id);
+          await supabaseAdmin.from('products').update({ price: p.price }).eq('id', p.id);
         } catch (e) {}
       }
       return NextResponse.json({ success: true, count: result.updated });

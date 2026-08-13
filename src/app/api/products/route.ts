@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { store } from '@/lib/data-store';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAdminSession } from '@/lib/auth-guard';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -24,7 +27,7 @@ export async function GET(request: NextRequest) {
   // If in-memory store is empty or needs refresh, fetch directly from Supabase
   if (products.length === 0) {
     try {
-      const { data: supaProds, error } = await supabase.from('products').select('*').order('priority_score', { ascending: false });
+      const { data: supaProds, error } = await supabaseAdmin.from('products').select('*').order('priority_score', { ascending: false });
       if (!error && supaProds && supaProds.length > 0) {
         supaProds.forEach(p => {
           store.upsertProduct({
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
     // Non-blocking async Supabase sync
     (async () => {
       try {
-        await supabase.from('products').upsert([{
+        await supabaseAdmin.from('products').upsert([{
           id: updatedProduct.id,
           title: updatedProduct.title,
           description: updatedProduct.description,
@@ -119,7 +122,7 @@ export async function DELETE(request: NextRequest) {
       currentProds.forEach(p => store.deleteProduct(p.id));
       (async () => {
         try {
-          await supabase.from('products').delete().neq('id', '0');
+          await supabaseAdmin.from('products').delete().neq('id', '0');
         } catch (e) {}
       })();
       return NextResponse.json({ success: true, message: 'All products purged' });
@@ -128,7 +131,7 @@ export async function DELETE(request: NextRequest) {
     store.deleteProduct(id);
     (async () => {
       try {
-        await supabase.from('products').delete().eq('id', id);
+        await supabaseAdmin.from('products').delete().eq('id', id);
       } catch (e) {}
     })();
 
