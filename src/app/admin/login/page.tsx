@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const { loginAdmin } = useAuthStore();
 
-  const [identifier, setIdentifier] = useState('HKW1321');
+  const [identifier, setIdentifier] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState('');
@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
               required
               value={identifier}
               onChange={e => setIdentifier(e.target.value)}
-              placeholder="HKW1321"
+              placeholder="Enter Admin ID"
               className="w-full px-3.5 py-2.5 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm focus:ring-2 focus:ring-terracotta"
             />
           </div>
@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
                 required
                 value={pin}
                 onChange={e => setPin(e.target.value)}
-                placeholder="Enter Password (Default: 9199)"
+                placeholder="Enter Admin Password"
                 className="w-full px-3.5 py-2.5 bg-cream-muted border border-cream-border rounded-xl font-mono text-sm focus:ring-2 focus:ring-terracotta pr-10"
               />
               <button
