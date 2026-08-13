@@ -109,10 +109,10 @@ export const Footer: React.FC = () => {
           </Link>
         </div>
 
-        {/* Bottom Rights Bar with Made & Maintained by Hikity */}
-        <div className="pt-6 border-t border-cream/10 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/70 gap-4">
+        {/* Bottom Rights Bar with Made & Maintained by Hikity in Center */}
+        <div className="pt-6 border-t border-cream/10 flex flex-col items-center justify-center text-center text-xs text-cream/70 gap-2">
           <p>© {new Date().getFullYear()} Anita Gift House. Founded by Anita Tekriwal. All rights reserved.</p>
-          <div className="flex items-center gap-1.5 font-medium">
+          <div className="flex items-center justify-center gap-1.5 font-medium">
             <span>Technical Partner:</span>
             <a
               href="https://hikity.xyz"
