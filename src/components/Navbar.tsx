@@ -292,7 +292,7 @@ export const Navbar: React.FC = () => {
                   <button
                     onClick={() => {
                       logoutAdmin();
-                      router.push('/admin/login');
+                      router.push('/');
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold bg-crimson/10 text-crimson border border-crimson/20 hover:bg-crimson hover:text-cream transition shadow-xs"
                     title="Log Out Admin Session"
@@ -406,7 +406,7 @@ export const Navbar: React.FC = () => {
                   <Link href="/admin" className="text-espresso flex items-center gap-1 font-bold">
                     <ShieldCheck className="w-4 h-4 text-gold" /> Admin Dashboard
                   </Link>
-                  <button onClick={() => { logoutAdmin(); router.push('/admin/login'); }} className="text-crimson flex items-center gap-1 font-bold">
+                  <button onClick={() => { logoutAdmin(); router.push('/'); }} className="text-crimson flex items-center gap-1 font-bold">
                     <LogOut className="w-3.5 h-3.5" /> Log Out
                   </button>
                 </>
