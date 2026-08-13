@@ -19,17 +19,17 @@ const reviewsData: Review[] = [
   {
     id: 'r-1',
     name: 'Ananya Sharma',
-    location: 'Patna, Bihar',
+    location: 'Tilka Manjhi, Bhagalpur',
     rating: 5,
     date: '2 days ago',
     productName: 'Royal Kundan Rakhi & Sweets Combo',
-    comment: 'The Rakhi was absolutely stunning and high quality! Packaging was super safe and arrived within 2 days via express delivery. My brother loved it!',
+    comment: 'The Rakhi was absolutely stunning and high quality! Same-day local delivery in Bhagalpur was super fast. My brother loved it!',
     verified: true
   },
   {
     id: 'r-2',
     name: 'Rajesh Kumar',
-    location: 'Bhagalpur, Bihar',
+    location: 'Near Budhanath, Bhagalpur',
     rating: 5,
     date: '1 week ago',
     productName: 'Artisanal Brass Pooja Diya Set',
@@ -39,21 +39,21 @@ const reviewsData: Review[] = [
   {
     id: 'r-3',
     name: 'Megha Roy',
-    location: 'Kolkata, West Bengal',
+    location: 'Khanjarpur, Bhagalpur',
     rating: 5,
     date: '2 weeks ago',
     productName: 'Festive Luxury Gourmet Hamper',
-    comment: 'Everything in the hamper was freshly packed and premium quality. Shared direct WhatsApp inquiry and got instant response on order status.',
+    comment: 'Everything in the hamper was freshly packed and premium quality. Shared direct WhatsApp inquiry and picked it up directly from their Bhagalpur store.',
     verified: true
   },
   {
     id: 'r-4',
     name: 'Vikramaditya Singh',
-    location: 'New Delhi',
+    location: 'Zero Mile, Bhagalpur',
     rating: 5,
     date: '3 weeks ago',
     productName: 'STEM Educational Robotic Car Toy',
-    comment: 'Bought this toy for my son\'s birthday. Quality is top notch and works smoothly. Express Delhivery shipping delivered earlier than promised!',
+    comment: 'Bought this toy for my son\'s birthday from Anita Gift House in Bhagalpur. Quality is top notch and works smoothly. Best gift store in Bhagalpur!',
     verified: true
   }
 ];
