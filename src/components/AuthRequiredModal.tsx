@@ -104,7 +104,7 @@ export const AuthRequiredModal: React.FC = () => {
             onClick={closeAuthRequiredModal}
             className="py-2.5 px-2 bg-terracotta/10 border border-terracotta/20 text-terracotta font-bold rounded-xl hover:bg-terracotta hover:text-cream transition text-center line-clamp-1"
           >
-            Email OTP Login
+            Customer Log In
           </Link>
 
           <Link

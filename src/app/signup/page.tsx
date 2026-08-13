@@ -124,7 +124,7 @@ function SignupContent() {
           href="/login"
           className="flex-1 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 text-espresso/70 hover:text-espresso"
         >
-          <LogIn className="w-4 h-4" /> Log In / Email OTP
+          <LogIn className="w-4 h-4" /> Log In
         </Link>
       </div>
 
