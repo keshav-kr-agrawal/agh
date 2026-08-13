@@ -55,11 +55,6 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs text-cream/80">
               <li><Link href="/account" className="hover:text-gold transition">Customer Dashboard & Orders</Link></li>
               <li><Link href="/login" className="hover:text-gold transition">Customer Login / Account Access</Link></li>
-              <li>
-                <Link href="/admin/login" className="text-gold font-bold hover:underline transition flex items-center gap-1.5 mt-1">
-                  🔐 Admin Control Center Login
-                </Link>
-              </li>
               <li><span className="text-cream/60">Store Hours: 10 AM - 9 PM Daily</span></li>
             </ul>
           </div>
