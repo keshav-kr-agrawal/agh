@@ -90,8 +90,27 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
+        {/* Legal Policies (DPDP Act 2023 Compliant) */}
+        <div className="pt-6 border-t border-cream/10 flex flex-wrap items-center justify-center gap-4 text-[11px] text-cream/70">
+          <Link href="/privacy" className="hover:text-gold transition font-medium">
+            Privacy Policy (DPDP Act 2023)
+          </Link>
+          <span>•</span>
+          <Link href="/terms" className="hover:text-gold transition font-medium">
+            Terms & Conditions
+          </Link>
+          <span>•</span>
+          <Link href="/refund-policy" className="hover:text-gold transition font-medium">
+            Cancellation & Refund Policy
+          </Link>
+          <span>•</span>
+          <Link href="/shipping-policy" className="hover:text-gold transition font-medium">
+            Shipping & Delivery Policy
+          </Link>
+        </div>
+
         {/* Bottom Rights Bar with Made & Maintained by Hikity */}
-        <div className="pt-8 border-t border-cream/10 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/70 gap-4">
+        <div className="pt-6 border-t border-cream/10 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/70 gap-4">
           <p>© {new Date().getFullYear()} Anita Gift House. Founded by Anita Tekriwal. All rights reserved.</p>
           <div className="flex items-center gap-1.5 font-medium">
             <span>Technical Partner:</span>
