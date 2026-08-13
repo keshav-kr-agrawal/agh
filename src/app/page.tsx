@@ -3,6 +3,8 @@ import { Navbar } from '@/components/Navbar';
 import { MerchandisingGrid } from '@/components/MerchandisingGrid';
 import { ProductDetailModal } from '@/components/ProductDetailModal';
 import { CartDrawer } from '@/components/CartDrawer';
+import { CustomerReviews } from '@/components/CustomerReviews';
+import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { Footer } from '@/components/Footer';
 
 export const metadata = {
@@ -12,13 +14,15 @@ export const metadata = {
 
 export default function StorefrontPage() {
   return (
-    <main className="min-h-screen bg-cream text-espresso flex flex-col font-sans selection:bg-gold selection:text-espresso">
+    <main className="min-h-screen bg-cream text-espresso flex flex-col font-sans selection:bg-gold selection:text-espresso relative">
       <Navbar />
-      <div className="flex-1">
+      <div className="flex-1 space-y-12">
         <MerchandisingGrid />
+        <CustomerReviews />
       </div>
       <ProductDetailModal />
       <CartDrawer />
+      <FloatingWhatsAppButton />
       <Footer />
     </main>
   );

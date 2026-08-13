@@ -73,11 +73,20 @@ export const Footer: React.FC = () => {
               <MapPin className="w-4 h-4 text-terracotta shrink-0 mt-0.5" />
               <span>Anita Gift House, Near Budhanath, Bhagalpur, Bihar - 812001</span>
             </div>
-            {/* ONLY DISPLAY OFFICIAL ADMIN PHONE NUMBER +91 9199272836 */}
-            <div className="flex items-center gap-2.5 p-3 bg-cream/10 rounded-2xl border border-gold/30">
-              <Phone className="w-4 h-4 text-gold shrink-0 animate-pulse" />
-              <span className="font-mono font-bold text-cream text-sm">+91 9199272836</span>
-            </div>
+            {/* OFFICIAL ADMIN PHONE & DIRECT WHATSAPP REDIRECTION +91 9199272836 */}
+            <a
+              href="https://wa.me/919199272836?text=Hello%20Anita%20Gift%20House!%20I%20have%20an%20inquiry."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 p-3 bg-cream/10 rounded-2xl border border-gold/30 hover:bg-gold/20 transition group"
+              title="Click to chat directly on WhatsApp (+91 9199272836)"
+            >
+              <Phone className="w-4 h-4 text-gold shrink-0 animate-pulse group-hover:scale-110 transition" />
+              <div>
+                <span className="font-mono font-bold text-cream text-sm block">+91 9199272836</span>
+                <span className="text-[10px] text-gold font-semibold">Click to Chat on WhatsApp →</span>
+              </div>
+            </a>
           </div>
         </div>
 
